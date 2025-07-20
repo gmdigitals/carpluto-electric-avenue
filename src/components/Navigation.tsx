@@ -1,10 +1,14 @@
 import { useState } from 'react';
-import { Menu, X, Zap, Search, User, ShoppingBag } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Menu, X, Zap, Search, User, ShoppingBag, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, profile, signOut } = useAuth();
 
   const navItems = [
     { label: 'Vehicles', href: '#vehicles' },
@@ -50,16 +54,38 @@ export function Navigation() {
               />
             </div>
             
-            <Button variant="ghost" size="icon">
-              <User className="h-5 w-5" />
-            </Button>
-            
-            <Button variant="ghost" size="icon" className="relative">
-              <ShoppingBag className="h-5 w-5" />
-              <span className="absolute -top-2 -right-2 h-4 w-4 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
-                0
-              </span>
-            </Button>
+            {user ? (
+              <>
+                <Link to="/dashboard">
+                  <Button variant="ghost" size="icon">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </Link>
+                
+                {profile?.role && ['admin', 'super_admin'].includes(profile.role) && (
+                  <Link to="/admin">
+                    <Button variant="ghost" size="icon">
+                      <Settings className="h-5 w-5" />
+                    </Button>
+                  </Link>
+                )}
+                
+                <Button variant="ghost" size="icon" className="relative">
+                  <ShoppingBag className="h-5 w-5" />
+                  <span className="absolute -top-2 -right-2 h-4 w-4 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
+                    0
+                  </span>
+                </Button>
+                
+                <Button variant="ghost" size="icon" onClick={signOut}>
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              </>
+            ) : (
+              <Link to="/auth">
+                <Button size="sm">Sign In</Button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -100,14 +126,50 @@ export function Navigation() {
               
               {/* Mobile Actions */}
               <div className="flex gap-2 pt-4 border-t border-border">
-                <Button variant="outline" className="flex-1">
-                  <User className="h-4 w-4 mr-2" />
-                  Account
-                </Button>
-                <Button variant="outline" className="flex-1">
-                  <ShoppingBag className="h-4 w-4 mr-2" />
-                  Cart (0)
-                </Button>
+                {user ? (
+                  <>
+                    <div className="w-full text-sm text-muted-foreground mb-2">
+                      <p className="font-medium">{profile?.full_name || user.email}</p>
+                      {profile?.role && (
+                        <Badge variant="secondary" className="mt-1">
+                          {profile.role}
+                        </Badge>
+                      )}
+                    </div>
+                    <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="w-full">
+                      <Button variant="outline" className="w-full">
+                        <User className="h-4 w-4 mr-2" />
+                        Dashboard
+                      </Button>
+                    </Link>
+                    {profile?.role && ['admin', 'super_admin'].includes(profile.role) && (
+                      <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="w-full">
+                        <Button variant="outline" className="w-full">
+                          <Settings className="h-4 w-4 mr-2" />
+                          Admin
+                        </Button>
+                      </Link>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        signOut();
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <Link to="/auth" onClick={() => setIsMenuOpen(false)} className="w-full">
+                    <Button className="w-full">
+                      <User className="h-4 w-4 mr-2" />
+                      Sign In
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>

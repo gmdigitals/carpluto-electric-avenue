@@ -14,7 +14,271 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cars: {
+        Row: {
+          acceleration_0_100: number | null
+          availability_status: string | null
+          battery_capacity: number | null
+          brand: string
+          charging_time_hours: number | null
+          created_at: string
+          exterior_color: string | null
+          features: string[] | null
+          id: string
+          images: string[] | null
+          interior_color: string | null
+          is_featured: boolean | null
+          model: string
+          price: number
+          range_km: number
+          specifications: Json | null
+          top_speed: number | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          acceleration_0_100?: number | null
+          availability_status?: string | null
+          battery_capacity?: number | null
+          brand: string
+          charging_time_hours?: number | null
+          created_at?: string
+          exterior_color?: string | null
+          features?: string[] | null
+          id?: string
+          images?: string[] | null
+          interior_color?: string | null
+          is_featured?: boolean | null
+          model: string
+          price: number
+          range_km: number
+          specifications?: Json | null
+          top_speed?: number | null
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          acceleration_0_100?: number | null
+          availability_status?: string | null
+          battery_capacity?: number | null
+          brand?: string
+          charging_time_hours?: number | null
+          created_at?: string
+          exterior_color?: string | null
+          features?: string[] | null
+          id?: string
+          images?: string[] | null
+          interior_color?: string | null
+          is_featured?: boolean | null
+          model?: string
+          price?: number
+          range_km?: number
+          specifications?: Json | null
+          top_speed?: number | null
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      charging_stations: {
+        Row: {
+          address: string
+          amenities: string[] | null
+          city: string
+          connector_types: string[] | null
+          created_at: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          operating_hours: string | null
+          power_output: string | null
+          pricing_per_kwh: number | null
+          state: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          amenities?: string[] | null
+          city: string
+          connector_types?: string[] | null
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          operating_hours?: string | null
+          power_output?: string | null
+          pricing_per_kwh?: number | null
+          state: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          amenities?: string[] | null
+          city?: string
+          connector_types?: string[] | null
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          operating_hours?: string | null
+          power_output?: string | null
+          pricing_per_kwh?: number | null
+          state?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          car_id: string | null
+          created_at: string
+          delivery_address: string | null
+          delivery_date: string | null
+          id: string
+          order_number: string
+          payment_method: string | null
+          payment_status: string | null
+          paystack_reference: string | null
+          status: string | null
+          total_amount: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          car_id?: string | null
+          created_at?: string
+          delivery_address?: string | null
+          delivery_date?: string | null
+          id?: string
+          order_number: string
+          payment_method?: string | null
+          payment_status?: string | null
+          paystack_reference?: string | null
+          status?: string | null
+          total_amount: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          car_id?: string | null
+          created_at?: string
+          delivery_address?: string | null
+          delivery_date?: string | null
+          id?: string
+          order_number?: string
+          payment_method?: string | null
+          payment_status?: string | null
+          paystack_reference?: string | null
+          status?: string | null
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_car_id_fkey"
+            columns: ["car_id"]
+            isOneToOne: false
+            referencedRelation: "cars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          role: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      test_drives: {
+        Row: {
+          admin_notes: string | null
+          car_id: string | null
+          created_at: string
+          driver_license_number: string
+          id: string
+          notes: string | null
+          pickup_location: string
+          preferred_date: string
+          preferred_time: string
+          status: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          car_id?: string | null
+          created_at?: string
+          driver_license_number: string
+          id?: string
+          notes?: string | null
+          pickup_location: string
+          preferred_date: string
+          preferred_time: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          car_id?: string | null
+          created_at?: string
+          driver_license_number?: string
+          id?: string
+          notes?: string | null
+          pickup_location?: string
+          preferred_date?: string
+          preferred_time?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_drives_car_id_fkey"
+            columns: ["car_id"]
+            isOneToOne: false
+            referencedRelation: "cars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
