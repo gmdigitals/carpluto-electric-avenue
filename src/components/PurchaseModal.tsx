@@ -61,6 +61,7 @@ export function PurchaseModal({ vehicle, children }: PurchaseModalProps) {
         .from('orders')
         .insert({
           user_id: user.id,
+          car_id: null, // Will be updated when cars are properly linked
           order_number: orderNumber,
           total_amount: priceInNaira,
           delivery_address: deliveryAddress,
@@ -74,6 +75,14 @@ export function PurchaseModal({ vehicle, children }: PurchaseModalProps) {
       if (orderError) throw orderError;
 
       // Initialize Paystack payment
+      console.log('Calling create-payment with:', {
+        amount: priceInNaira * 100,
+        email: user.email,
+        orderId: orderData.id,
+        orderNumber: orderNumber,
+        vehicleName: vehicle.name,
+      });
+
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
           amount: priceInNaira * 100, // Paystack expects amount in kobo
@@ -89,6 +98,8 @@ export function PurchaseModal({ vehicle, children }: PurchaseModalProps) {
           },
         },
       });
+
+      console.log('create-payment response:', { data, error });
 
       if (error) throw error;
 
