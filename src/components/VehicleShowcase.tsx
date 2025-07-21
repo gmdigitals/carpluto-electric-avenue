@@ -3,6 +3,7 @@ import { Car, Zap, Battery, Gauge, Heart, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { PurchaseModal } from '@/components/PurchaseModal';
 
 const vehicles = [
   {
@@ -229,10 +230,12 @@ export function VehicleShowcase() {
               </CardContent>
 
               <CardFooter className="p-6 pt-0 flex gap-2">
-                <Button className="flex-1 bg-gradient-primary hover:shadow-electric transition-all duration-300">
-                  Configure
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
+                <PurchaseModal vehicle={vehicle}>
+                  <Button className="flex-1 bg-gradient-primary hover:shadow-electric transition-all duration-300">
+                    Buy Now
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </PurchaseModal>
                 <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
                   Test Drive
                 </Button>
