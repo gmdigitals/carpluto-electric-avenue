@@ -11,11 +11,11 @@ export function Navigation() {
   const { user, profile, signOut } = useAuth();
 
   const navItems = [
-    { label: 'Vehicles', href: '#vehicles' },
-    { label: 'Test Drive', href: '#test-drive' },
-    { label: 'Charging', href: '#charging' },
-    { label: 'Finance', href: '#finance' },
-    { label: 'Support', href: '#support' }
+    { label: 'Vehicles', href: '/vehicles' },
+    { label: 'Test Drive', href: '/test-drive' },
+    { label: 'Charging', href: '/charging' },
+    { label: 'Finance', href: '/finance' },
+    { label: 'Support', href: '/support' }
   ];
 
   return (
@@ -34,13 +34,13 @@ export function Navigation() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.label}
-                href={item.href}
+                to={item.href}
                 className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200"
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </div>
 
@@ -114,14 +114,14 @@ export function Navigation() {
               
               {/* Mobile Navigation Links */}
               {navItems.map((item) => (
-                <a
+                <Link
                   key={item.label}
-                  href={item.href}
+                  to={item.href}
                   className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200 py-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}
-                </a>
+                </Link>
               ))}
               
               {/* Mobile Actions */}
