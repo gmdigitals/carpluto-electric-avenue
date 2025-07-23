@@ -21,8 +21,43 @@ import {
   Edit,
   Trash2,
   Eye,
-  Settings
+  Settings,
+  Shield,
+  TrendingUp,
+  DollarSign,
+  AlertTriangle,
+  Download,
+  Upload,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  RefreshCw,
+  BarChart3,
+  PieChart,
+  Activity
 } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart as RechartsPieChart, Cell } from 'recharts';
+
+interface AnalyticsData {
+  overview?: {
+    total_users: number;
+    total_cars: number;
+    total_orders: number;
+    total_test_drives: number;
+    revenue_this_month: number;
+    pending_test_drives: number;
+  };
+  sales_by_month?: Array<{
+    month: string;
+    revenue: number;
+    orders: number;
+  }>;
+  top_selling_cars?: Array<{
+    car_name: string;
+    sales_count: number;
+    total_revenue: number;
+  }>;
+}
 
 export default function Admin() {
   const { user, profile, loading } = useAuth();
@@ -40,6 +75,10 @@ export default function Admin() {
   const [testDrives, setTestDrives] = useState([]);
   const [chargingStations, setChargingStations] = useState([]);
   const [users, setUsers] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [analytics, setAnalytics] = useState<AnalyticsData>({});
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [selectedCars, setSelectedCars] = useState<string[]>([]);
 
   const [carForm, setCarForm] = useState({
     brand: '',
@@ -74,6 +113,8 @@ export default function Admin() {
   useEffect(() => {
     if (user && profile?.role && ['admin', 'super_admin'].includes(profile.role)) {
       fetchAdminData();
+      fetchAuditLogs();
+      fetchAnalytics();
     }
   }, [user, profile]);
 
@@ -96,7 +137,7 @@ export default function Admin() {
         totalChargingStations: stationsRes.count || 0
       });
 
-      // Fetch detailed data
+      // Fetch detailed data with better error handling
       const { data: carsData } = await supabase
         .from('cars')
         .select('*')
@@ -137,13 +178,81 @@ export default function Admin() {
       setUsers(usersData || []);
     } catch (error) {
       console.error('Error fetching admin data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch admin data",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchAuditLogs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('audit_logs')
+        .select(`
+          *,
+          profiles!audit_logs_admin_user_id_fkey (full_name, email)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      setAuditLogs(data || []);
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+    }
+  };
+
+  const fetchAnalytics = async () => {
+    try {
+      // Refresh analytics cache first
+      await supabase.rpc('refresh_admin_analytics');
+      
+      // Fetch analytics data
+      const { data, error } = await supabase
+        .from('admin_analytics_cache')
+        .select('*');
+
+      if (error) throw error;
+
+      const analyticsData: AnalyticsData = {};
+      data?.forEach((row) => {
+        const metricType = row.metric_type as keyof AnalyticsData;
+        if (metricType === 'overview' || metricType === 'sales_by_month' || metricType === 'top_selling_cars') {
+          analyticsData[metricType] = row.data as any;
+        }
+      });
+
+      setAnalytics(analyticsData);
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch analytics data",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const logAdminAction = async (action: string, resourceType: string, resourceId?: string, oldValues?: any, newValues?: any) => {
+    try {
+      await supabase.rpc('log_admin_action', {
+        p_action: action,
+        p_resource_type: resourceType,
+        p_resource_id: resourceId,
+        p_old_values: oldValues,
+        p_new_values: newValues
+      });
+    } catch (error) {
+      console.error('Error logging admin action:', error);
     }
   };
 
   const handleAddCar = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const { error } = await supabase.from('cars').insert({
+    const carData = {
       brand: carForm.brand,
       model: carForm.model,
       year: carForm.year,
@@ -157,7 +266,9 @@ export default function Admin() {
       interior_color: carForm.interior_color || null,
       features: carForm.features.split(',').map(f => f.trim()).filter(f => f),
       is_featured: carForm.is_featured
-    });
+    };
+
+    const { error } = await supabase.from('cars').insert(carData);
 
     if (error) {
       toast({
@@ -166,6 +277,7 @@ export default function Admin() {
         variant: "destructive",
       });
     } else {
+      await logAdminAction('CREATE', 'car', undefined, undefined, carData);
       toast({
         title: "Success",
         description: "Car added successfully!",
@@ -192,14 +304,16 @@ export default function Admin() {
   const handleAddChargingStation = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const { error } = await supabase.from('charging_stations').insert([{
+    const stationData = {
       ...stationForm,
       connector_types: stationForm.connector_types.split(',').map(c => c.trim()).filter(c => c),
       amenities: stationForm.amenities.split(',').map(a => a.trim()).filter(a => a),
       latitude: stationForm.latitude ? parseFloat(stationForm.latitude) : null,
       longitude: stationForm.longitude ? parseFloat(stationForm.longitude) : null,
       pricing_per_kwh: stationForm.pricing_per_kwh ? parseFloat(stationForm.pricing_per_kwh) : null
-    }]);
+    };
+
+    const { error } = await supabase.from('charging_stations').insert([stationData]);
 
     if (error) {
       toast({
@@ -208,6 +322,7 @@ export default function Admin() {
         variant: "destructive",
       });
     } else {
+      await logAdminAction('CREATE', 'charging_station', undefined, undefined, stationData);
       toast({
         title: "Success",
         description: "Charging station added successfully!",
@@ -230,6 +345,8 @@ export default function Admin() {
   };
 
   const updateTestDriveStatus = async (id: string, status: string) => {
+    const oldStatus = testDrives.find((td: any) => td.id === id)?.status;
+    
     const { error } = await supabase
       .from('test_drives')
       .update({ status })
@@ -242,6 +359,7 @@ export default function Admin() {
         variant: "destructive",
       });
     } else {
+      await logAdminAction('UPDATE', 'test_drive', id, { status: oldStatus }, { status });
       toast({
         title: "Success",
         description: "Test drive status updated!",
@@ -251,6 +369,8 @@ export default function Admin() {
   };
 
   const updateOrderStatus = async (id: string, status: string) => {
+    const oldStatus = orders.find((order: any) => order.id === id)?.status;
+    
     const { error } = await supabase
       .from('orders')
       .update({ status })
@@ -263,10 +383,70 @@ export default function Admin() {
         variant: "destructive",
       });
     } else {
+      await logAdminAction('UPDATE', 'order', id, { status: oldStatus }, { status });
       toast({
         title: "Success",
         description: "Order status updated!",
       });
+      fetchAdminData();
+    }
+  };
+
+  const updateUserRole = async (userId: string, newRole: string) => {
+    const oldRole = users.find((u: any) => u.user_id === userId)?.role;
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({ role: newRole })
+      .eq('user_id', userId);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      await logAdminAction('UPDATE', 'user_role', userId, { role: oldRole }, { role: newRole });
+      toast({
+        title: "Success",
+        description: "User role updated!",
+      });
+      fetchAdminData();
+    }
+  };
+
+  const bulkUpdateCarStatus = async (status: string) => {
+    if (selectedCars.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select cars to update",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from('cars')
+      .update({ availability_status: status })
+      .in('id', selectedCars);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      await logAdminAction('BULK_UPDATE', 'cars', undefined, undefined, { 
+        car_ids: selectedCars, 
+        availability_status: status 
+      });
+      toast({
+        title: "Success",
+        description: `Updated ${selectedCars.length} cars`,
+      });
+      setSelectedCars([]);
       fetchAdminData();
     }
   };
@@ -296,125 +476,229 @@ export default function Admin() {
     }
   };
 
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'super_admin': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      case 'admin': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+      case 'user': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+    }
+  };
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <header className="bg-background/80 backdrop-blur-sm border-b border-primary/20 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Settings className="h-6 w-6 text-primary" />
+              <Shield className="h-6 w-6 text-primary" />
               <span className="font-bold text-xl">CarPluto Admin</span>
+              <Badge variant="default" className="ml-2">{profile.role}</Badge>
             </div>
-            <Badge variant="default">{profile.role}</Badge>
+            <div className="flex items-center gap-4">
+              <Button variant="outline" size="sm" onClick={fetchAnalytics}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh Data
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Car className="h-4 w-4" />
-                Cars
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalCars}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Users
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalUsers}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <ShoppingBag className="h-4 w-4" />
-                Orders
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalOrders}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Test Drives
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalTestDrives}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                Stations
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalChargingStations}</div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Enhanced Stats Overview with Analytics */}
+        {analytics.overview && (
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Total Users
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analytics.overview.total_users}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Car className="h-4 w-4" />
+                  Total Cars
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analytics.overview.total_cars}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <ShoppingBag className="h-4 w-4" />
+                  Total Orders
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analytics.overview.total_orders}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Monthly Revenue
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">₦{analytics.overview.revenue_this_month.toLocaleString()}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Test Drives
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analytics.overview.total_test_drives}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  Pending Requests
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-600">{analytics.overview.pending_test_drives}</div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
-        <Tabs defaultValue="cars" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+        <Tabs defaultValue="analytics" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-8">
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="cars">Cars</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="test-drives">Test Drives</TabsTrigger>
             <TabsTrigger value="stations">Stations</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="audit">Audit Logs</TabsTrigger>
             <TabsTrigger value="add">Add New</TabsTrigger>
           </TabsList>
 
-          {/* Cars Management */}
-          <TabsContent value="cars">
+          {/* Analytics Dashboard */}
+          <TabsContent value="analytics">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Sales by Month Chart */}
+              {analytics.sales_by_month && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      Sales Trend (Last 12 Months)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={analytics.sales_by_month}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip formatter={(value, name) => [
+                          name === 'revenue' ? `₦${Number(value).toLocaleString()}` : value,
+                          name === 'revenue' ? 'Revenue' : 'Orders'
+                        ]} />
+                        <Legend />
+                        <Line type="monotone" dataKey="revenue" stroke="#8884d8" name="Revenue" />
+                        <Bar dataKey="orders" fill="#82ca9d" name="Orders" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Top Selling Cars */}
+              {analytics.top_selling_cars && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      Top Selling Cars
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={analytics.top_selling_cars}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="car_name" />
+                        <YAxis />
+                        <Tooltip formatter={(value, name) => [
+                          name === 'total_revenue' ? `₦${Number(value).toLocaleString()}` : value,
+                          name === 'total_revenue' ? 'Revenue' : 'Sales Count'
+                        ]} />
+                        <Legend />
+                        <Bar dataKey="sales_count" fill="#8884d8" name="Sales Count" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Enhanced User Management */}
+          <TabsContent value="users">
             <Card>
               <CardHeader>
-                <CardTitle>Car Inventory</CardTitle>
-                <CardDescription>Manage your EV collection</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  User Management
+                </CardTitle>
+                <CardDescription>Manage user accounts and permissions</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {cars.map((car: any) => (
-                    <div key={car.id} className="border rounded-lg p-4 flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">{car.brand} {car.model} ({car.year})</h3>
-                        <p className="text-sm text-muted-foreground">
-                          ₦{parseFloat(car.price).toLocaleString()} • {car.range_km}km range
-                        </p>
-                        <div className="flex gap-2 mt-2">
-                          <Badge variant={car.is_featured ? 'default' : 'secondary'}>
-                            {car.is_featured ? 'Featured' : 'Regular'}
-                          </Badge>
-                          <Badge className={getStatusColor(car.availability_status)}>
-                            {car.availability_status}
-                          </Badge>
+                  {users.map((user: any) => (
+                    <div key={user.id} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            <div>
+                              <h3 className="font-medium">{user.full_name || 'No name'}</h3>
+                              <p className="text-sm text-muted-foreground">{user.email}</p>
+                            </div>
+                            <Badge className={getRoleColor(user.role)}>
+                              {user.role}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                            <span>Joined: {new Date(user.created_at).toLocaleDateString()}</span>
+                            {user.phone && <span>Phone: {user.phone}</span>}
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-2">
+                          <Select onValueChange={(value) => updateUserRole(user.user_id, value)}>
+                            <SelectTrigger className="w-[140px]">
+                              <SelectValue placeholder="Change role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="user">User</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              {profile?.role === 'super_admin' && (
+                                <SelectItem value="super_admin">Super Admin</SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -423,11 +707,107 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
-          {/* Orders Management */}
+          {/* Enhanced Car Management with Bulk Operations */}
+          <TabsContent value="cars">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Car className="h-5 w-5" />
+                      Car Inventory Management
+                    </CardTitle>
+                    <CardDescription>Manage your EV collection with bulk operations</CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    {selectedCars.length > 0 && (
+                      <>
+                        <Select onValueChange={bulkUpdateCarStatus}>
+                          <SelectTrigger className="w-[160px]">
+                            <SelectValue placeholder="Bulk update status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="available">Available</SelectItem>
+                            <SelectItem value="sold">Sold</SelectItem>
+                            <SelectItem value="maintenance">Maintenance</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Badge variant="secondary">{selectedCars.length} selected</Badge>
+                      </>
+                    )}
+                    <Button size="sm" variant="outline">
+                      <Download className="h-4 w-4 mr-2" />
+                      Export
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Import
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {cars.map((car: any) => (
+                    <div key={car.id} className="border rounded-lg p-4">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedCars.includes(car.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedCars([...selectedCars, car.id]);
+                            } else {
+                              setSelectedCars(selectedCars.filter(id => id !== car.id));
+                            }
+                          }}
+                          className="rounded"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="font-medium">{car.brand} {car.model} ({car.year})</h3>
+                              <p className="text-sm text-muted-foreground">
+                                ₦{parseFloat(car.price).toLocaleString()} • {car.range_km}km range
+                              </p>
+                              <div className="flex gap-2 mt-2">
+                                <Badge variant={car.is_featured ? 'default' : 'secondary'}>
+                                  {car.is_featured ? 'Featured' : 'Regular'}
+                                </Badge>
+                                <Badge className={getStatusColor(car.availability_status)}>
+                                  {car.availability_status}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button size="sm" variant="outline">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button size="sm" variant="destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Orders Management - keeping existing functionality */}
           <TabsContent value="orders">
             <Card>
               <CardHeader>
-                <CardTitle>Order Management</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <ShoppingBag className="h-5 w-5" />
+                  Order Management
+                </CardTitle>
                 <CardDescription>Track and manage customer orders</CardDescription>
               </CardHeader>
               <CardContent>
@@ -470,11 +850,14 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
-          {/* Test Drives Management */}
+          {/* Test Drives Management - keeping existing functionality */}
           <TabsContent value="test-drives">
             <Card>
               <CardHeader>
-                <CardTitle>Test Drive Requests</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Test Drive Requests
+                </CardTitle>
                 <CardDescription>Manage test drive appointments</CardDescription>
               </CardHeader>
               <CardContent>
@@ -497,18 +880,21 @@ export default function Admin() {
                           {testDrive.status}
                         </Badge>
                       </div>
-                      <div className="flex gap-2 mt-2">
-                        <Select onValueChange={(value) => updateTestDriveStatus(testDrive.id, value)}>
-                          <SelectTrigger className="w-[140px]">
-                            <SelectValue placeholder="Update status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="confirmed">Confirmed</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm">License: {testDrive.driver_license_number}</p>
+                        <div className="flex gap-2">
+                          <Select onValueChange={(value) => updateTestDriveStatus(testDrive.id, value)}>
+                            <SelectTrigger className="w-[140px]">
+                              <SelectValue placeholder="Update status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pending</SelectItem>
+                              <SelectItem value="confirmed">Confirmed</SelectItem>
+                              <SelectItem value="completed">Completed</SelectItem>
+                              <SelectItem value="cancelled">Cancelled</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -517,12 +903,15 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
-          {/* Charging Stations */}
+          {/* Charging Stations - keeping existing functionality */}
           <TabsContent value="stations">
             <Card>
               <CardHeader>
-                <CardTitle>Charging Stations</CardTitle>
-                <CardDescription>Manage charging station network</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Charging Stations
+                </CardTitle>
+                <CardDescription>Manage charging infrastructure</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -534,13 +923,19 @@ export default function Admin() {
                           <p className="text-sm text-muted-foreground">
                             {station.address}, {station.city}, {station.state}
                           </p>
-                          <p className="text-sm text-muted-foreground">
-                            {station.power_output} • ₦{station.pricing_per_kwh}/kWh
-                          </p>
+                          <div className="flex gap-2 mt-2">
+                            <Badge>{station.power_output}</Badge>
+                            <Badge variant="secondary">{station.status}</Badge>
+                          </div>
                         </div>
-                        <Badge className={getStatusColor(station.status)}>
-                          {station.status}
-                        </Badge>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -549,25 +944,41 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
-          {/* Users Management */}
-          <TabsContent value="users">
+          {/* Audit Logs */}
+          <TabsContent value="audit">
             <Card>
               <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>Manage user accounts and roles</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Audit Logs
+                </CardTitle>
+                <CardDescription>Track all administrative actions</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {users.map((user: any) => (
-                    <div key={user.id} className="border rounded-lg p-4 flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">{user.full_name || 'No name set'}</h3>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
-                        <p className="text-sm text-muted-foreground">{user.phone || 'No phone'}</p>
+                  {auditLogs.map((log: any) => (
+                    <div key={log.id} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">{log.action}</Badge>
+                            <span className="text-sm font-medium">{log.resource_type}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {log.profiles?.full_name || 'Unknown'} • {new Date(log.created_at).toLocaleString()}
+                          </p>
+                          {log.new_values && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Changes: {JSON.stringify(log.new_values)}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          {log.action === 'CREATE' && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                          {log.action === 'UPDATE' && <Edit className="h-4 w-4 text-blue-500" />}
+                          {log.action === 'DELETE' && <XCircle className="h-4 w-4 text-red-500" />}
+                        </div>
                       </div>
-                      <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                        {user.role}
-                      </Badge>
                     </div>
                   ))}
                 </div>
@@ -575,14 +986,16 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
-          {/* Add New Items */}
+          {/* Add New Items - keeping existing functionality */}
           <TabsContent value="add">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Add Car Form */}
+              {/* Add New Car Form */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Add New Car</CardTitle>
-                  <CardDescription>Add a new EV to the inventory</CardDescription>
+                  <CardTitle className="flex items-center gap-2">
+                    <Plus className="h-5 w-5" />
+                    Add New Car
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleAddCar} className="space-y-4">
@@ -593,7 +1006,6 @@ export default function Admin() {
                           id="brand"
                           value={carForm.brand}
                           onChange={(e) => setCarForm({...carForm, brand: e.target.value})}
-                          placeholder="Tesla"
                           required
                         />
                       </div>
@@ -603,12 +1015,12 @@ export default function Admin() {
                           id="model"
                           value={carForm.model}
                           onChange={(e) => setCarForm({...carForm, model: e.target.value})}
-                          placeholder="Model 3"
                           required
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+
+                    <div className="grid grid-cols-3 gap-4">
                       <div>
                         <Label htmlFor="year">Year</Label>
                         <Input
@@ -626,35 +1038,63 @@ export default function Admin() {
                           type="number"
                           value={carForm.price}
                           onChange={(e) => setCarForm({...carForm, price: e.target.value})}
-                          placeholder="8000000"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="range_km">Range (km)</Label>
+                        <Input
+                          id="range_km"
+                          type="number"
+                          value={carForm.range_km}
+                          onChange={(e) => setCarForm({...carForm, range_km: e.target.value})}
                           required
                         />
                       </div>
                     </div>
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="range">Range (km)</Label>
+                        <Label htmlFor="battery_capacity">Battery Capacity (kWh)</Label>
                         <Input
-                          id="range"
-                          type="number"
-                          value={carForm.range_km}
-                          onChange={(e) => setCarForm({...carForm, range_km: e.target.value})}
-                          placeholder="500"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="battery">Battery (kWh)</Label>
-                        <Input
-                          id="battery"
+                          id="battery_capacity"
                           type="number"
                           step="0.1"
                           value={carForm.battery_capacity}
                           onChange={(e) => setCarForm({...carForm, battery_capacity: e.target.value})}
-                          placeholder="75.0"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="charging_time_hours">Charging Time (hours)</Label>
+                        <Input
+                          id="charging_time_hours"
+                          type="number"
+                          step="0.1"
+                          value={carForm.charging_time_hours}
+                          onChange={(e) => setCarForm({...carForm, charging_time_hours: e.target.value})}
                         />
                       </div>
                     </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="exterior_color">Exterior Color</Label>
+                        <Input
+                          id="exterior_color"
+                          value={carForm.exterior_color}
+                          onChange={(e) => setCarForm({...carForm, exterior_color: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="interior_color">Interior Color</Label>
+                        <Input
+                          id="interior_color"
+                          value={carForm.interior_color}
+                          onChange={(e) => setCarForm({...carForm, interior_color: e.target.value})}
+                        />
+                      </div>
+                    </div>
+
                     <div>
                       <Label htmlFor="features">Features (comma-separated)</Label>
                       <Textarea
@@ -664,42 +1104,54 @@ export default function Admin() {
                         placeholder="Autopilot, Premium Audio, Glass Roof"
                       />
                     </div>
+
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="is_featured"
+                        checked={carForm.is_featured}
+                        onChange={(e) => setCarForm({...carForm, is_featured: e.target.checked})}
+                      />
+                      <Label htmlFor="is_featured">Featured Car</Label>
+                    </div>
+
                     <Button type="submit" className="w-full">
-                      <Plus className="h-4 w-4 mr-2" />
                       Add Car
                     </Button>
                   </form>
                 </CardContent>
               </Card>
 
-              {/* Add Charging Station Form */}
+              {/* Add New Charging Station Form */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Add Charging Station</CardTitle>
-                  <CardDescription>Add a new charging station location</CardDescription>
+                  <CardTitle className="flex items-center gap-2">
+                    <Plus className="h-5 w-5" />
+                    Add Charging Station
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleAddChargingStation} className="space-y-4">
                     <div>
-                      <Label htmlFor="stationName">Station Name</Label>
+                      <Label htmlFor="station_name">Station Name</Label>
                       <Input
-                        id="stationName"
+                        id="station_name"
                         value={stationForm.name}
                         onChange={(e) => setStationForm({...stationForm, name: e.target.value})}
-                        placeholder="Lagos Fast Charge Hub"
                         required
                       />
                     </div>
+
                     <div>
                       <Label htmlFor="address">Address</Label>
                       <Input
                         id="address"
                         value={stationForm.address}
                         onChange={(e) => setStationForm({...stationForm, address: e.target.value})}
-                        placeholder="123 Victoria Island Road"
                         required
                       />
                     </div>
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="city">City</Label>
@@ -707,7 +1159,6 @@ export default function Admin() {
                           id="city"
                           value={stationForm.city}
                           onChange={(e) => setStationForm({...stationForm, city: e.target.value})}
-                          placeholder="Lagos"
                           required
                         />
                       </div>
@@ -717,45 +1168,55 @@ export default function Admin() {
                           id="state"
                           value={stationForm.state}
                           onChange={(e) => setStationForm({...stationForm, state: e.target.value})}
-                          placeholder="Lagos State"
                           required
                         />
                       </div>
                     </div>
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="power">Power Output</Label>
+                        <Label htmlFor="power_output">Power Output</Label>
                         <Input
-                          id="power"
+                          id="power_output"
                           value={stationForm.power_output}
                           onChange={(e) => setStationForm({...stationForm, power_output: e.target.value})}
-                          placeholder="150kW"
+                          placeholder="150kW DC Fast"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="pricing">Price per kWh (₦)</Label>
+                        <Label htmlFor="pricing_per_kwh">Pricing per kWh (₦)</Label>
                         <Input
-                          id="pricing"
+                          id="pricing_per_kwh"
                           type="number"
                           step="0.01"
                           value={stationForm.pricing_per_kwh}
                           onChange={(e) => setStationForm({...stationForm, pricing_per_kwh: e.target.value})}
-                          placeholder="120.00"
                         />
                       </div>
                     </div>
+
                     <div>
-                      <Label htmlFor="connectors">Connector Types (comma-separated)</Label>
+                      <Label htmlFor="connector_types">Connector Types (comma-separated)</Label>
                       <Input
-                        id="connectors"
+                        id="connector_types"
                         value={stationForm.connector_types}
                         onChange={(e) => setStationForm({...stationForm, connector_types: e.target.value})}
                         placeholder="CCS, CHAdeMO, Type 2"
                       />
                     </div>
+
+                    <div>
+                      <Label htmlFor="amenities">Amenities (comma-separated)</Label>
+                      <Input
+                        id="amenities"
+                        value={stationForm.amenities}
+                        onChange={(e) => setStationForm({...stationForm, amenities: e.target.value})}
+                        placeholder="WiFi, Restaurant, Shopping"
+                      />
+                    </div>
+
                     <Button type="submit" className="w-full">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Station
+                      Add Charging Station
                     </Button>
                   </form>
                 </CardContent>

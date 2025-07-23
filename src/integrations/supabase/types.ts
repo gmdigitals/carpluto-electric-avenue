@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_analytics_cache: {
+        Row: {
+          data: Json
+          id: string
+          metric_type: string
+          updated_at: string
+        }
+        Insert: {
+          data: Json
+          id?: string
+          metric_type: string
+          updated_at?: string
+        }
+        Update: {
+          data?: Json
+          id?: string
+          metric_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -320,16 +341,13 @@ export type Database = {
       }
     }
     Views: {
-      admin_analytics: {
-        Row: {
-          data: Json | null
-          metric_type: string | null
-          updated_at: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       log_admin_action: {
         Args: {
           p_action: string
@@ -338,6 +356,10 @@ export type Database = {
           p_old_values?: Json
           p_new_values?: Json
         }
+        Returns: undefined
+      }
+      refresh_admin_analytics: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
     }
