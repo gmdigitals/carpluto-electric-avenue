@@ -93,7 +93,8 @@ export default function Admin() {
     exterior_color: '',
     interior_color: '',
     features: '',
-    is_featured: false
+    is_featured: false,
+    images: [] as File[]
   });
 
   const [stationForm, setStationForm] = useState({
@@ -111,78 +112,84 @@ export default function Admin() {
   });
 
   useEffect(() => {
-    if (user && profile?.role && ['admin', 'super_admin'].includes(profile.role)) {
+    if (user && profile && ['admin', 'super_admin'].includes(profile.role)) {
       fetchAdminData();
-      fetchAuditLogs();
       fetchAnalytics();
     }
   }, [user, profile]);
 
   const fetchAdminData = async () => {
+    await Promise.all([
+      fetchCars(),
+      fetchOrders(),
+      fetchTestDrives(),
+      fetchChargingStations(),
+      fetchUsers(),
+      fetchAuditLogs()
+    ]);
+  };
+
+  const fetchCars = async () => {
     try {
-      // Fetch stats
-      const [carsRes, usersRes, ordersRes, testDrivesRes, stationsRes] = await Promise.all([
-        supabase.from('cars').select('id', { count: 'exact' }),
-        supabase.from('profiles').select('id', { count: 'exact' }),
-        supabase.from('orders').select('id', { count: 'exact' }),
-        supabase.from('test_drives').select('id', { count: 'exact' }),
-        supabase.from('charging_stations').select('id', { count: 'exact' })
-      ]);
+      const { data, error } = await supabase.from('cars').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      setCars(data || []);
+    } catch (error) {
+      console.error('Error fetching cars:', error);
+    }
+  };
 
-      setStats({
-        totalCars: carsRes.count || 0,
-        totalUsers: usersRes.count || 0,
-        totalOrders: ordersRes.count || 0,
-        totalTestDrives: testDrivesRes.count || 0,
-        totalChargingStations: stationsRes.count || 0
-      });
-
-      // Fetch detailed data with better error handling
-      const { data: carsData } = await supabase
-        .from('cars')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      const { data: ordersData } = await supabase
+  const fetchOrders = async () => {
+    try {
+      const { data, error } = await supabase
         .from('orders')
         .select(`
           *,
-          cars (brand, model, year),
-          profiles (full_name, email)
+          cars(brand, model),
+          profiles(full_name, email)
         `)
         .order('created_at', { ascending: false });
+      if (error) throw error;
+      setOrders(data || []);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    }
+  };
 
-      const { data: testDrivesData } = await supabase
+  const fetchTestDrives = async () => {
+    try {
+      const { data, error } = await supabase
         .from('test_drives')
         .select(`
           *,
-          cars (brand, model, year),
-          profiles (full_name, email)
+          cars(brand, model),
+          profiles(full_name, email)
         `)
         .order('created_at', { ascending: false });
-
-      const { data: stationsData } = await supabase
-        .from('charging_stations')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      const { data: usersData } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      setCars(carsData || []);
-      setOrders(ordersData || []);
-      setTestDrives(testDrivesData || []);
-      setChargingStations(stationsData || []);
-      setUsers(usersData || []);
+      if (error) throw error;
+      setTestDrives(data || []);
     } catch (error) {
-      console.error('Error fetching admin data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch admin data",
-        variant: "destructive",
-      });
+      console.error('Error fetching test drives:', error);
+    }
+  };
+
+  const fetchChargingStations = async () => {
+    try {
+      const { data, error } = await supabase.from('charging_stations').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      setChargingStations(data || []);
+    } catch (error) {
+      console.error('Error fetching charging stations:', error);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
     }
   };
 
@@ -192,11 +199,10 @@ export default function Admin() {
         .from('audit_logs')
         .select(`
           *,
-          profiles!audit_logs_admin_user_id_fkey (full_name, email)
+          profiles(full_name, email)
         `)
         .order('created_at', { ascending: false })
-        .limit(50);
-
+        .limit(100);
       if (error) throw error;
       setAuditLogs(data || []);
     } catch (error) {
@@ -252,52 +258,83 @@ export default function Admin() {
   const handleAddCar = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const carData = {
-      brand: carForm.brand,
-      model: carForm.model,
-      year: carForm.year,
-      price: parseFloat(carForm.price),
-      range_km: parseInt(carForm.range_km),
-      battery_capacity: carForm.battery_capacity ? parseFloat(carForm.battery_capacity) : null,
-      charging_time_hours: carForm.charging_time_hours ? parseFloat(carForm.charging_time_hours) : null,
-      top_speed: carForm.top_speed ? parseInt(carForm.top_speed) : null,
-      acceleration_0_100: carForm.acceleration_0_100 ? parseFloat(carForm.acceleration_0_100) : null,
-      exterior_color: carForm.exterior_color || null,
-      interior_color: carForm.interior_color || null,
-      features: carForm.features.split(',').map(f => f.trim()).filter(f => f),
-      is_featured: carForm.is_featured
-    };
+    try {
+      // Upload images first if any
+      let imageUrls: string[] = [];
+      if (carForm.images.length > 0) {
+        for (const image of carForm.images) {
+          const fileExt = image.name.split('.').pop();
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('car-images')
+            .upload(fileName, image);
 
-    const { error } = await supabase.from('cars').insert(carData);
+          if (uploadError) throw uploadError;
+          
+          const { data: { publicUrl } } = supabase.storage
+            .from('car-images')
+            .getPublicUrl(fileName);
+          
+          imageUrls.push(publicUrl);
+        }
+      }
 
-    if (error) {
+      const carData = {
+        brand: carForm.brand,
+        model: carForm.model,
+        year: carForm.year,
+        price: parseFloat(carForm.price),
+        range_km: parseInt(carForm.range_km),
+        battery_capacity: carForm.battery_capacity ? parseFloat(carForm.battery_capacity) : null,
+        charging_time_hours: carForm.charging_time_hours ? parseFloat(carForm.charging_time_hours) : null,
+        top_speed: carForm.top_speed ? parseInt(carForm.top_speed) : null,
+        acceleration_0_100: carForm.acceleration_0_100 ? parseFloat(carForm.acceleration_0_100) : null,
+        exterior_color: carForm.exterior_color || null,
+        interior_color: carForm.interior_color || null,
+        features: carForm.features.split(',').map(f => f.trim()).filter(f => f),
+        is_featured: carForm.is_featured,
+        images: imageUrls
+      };
+
+      const { error } = await supabase.from('cars').insert(carData);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        await logAdminAction('CREATE', 'car', undefined, undefined, carData);
+        toast({
+          title: "Success",
+          description: "Car added successfully!",
+        });
+        setCarForm({
+          brand: '',
+          model: '',
+          year: new Date().getFullYear(),
+          price: '',
+          range_km: '',
+          battery_capacity: '',
+          charging_time_hours: '',
+          top_speed: '',
+          acceleration_0_100: '',
+          exterior_color: '',
+          interior_color: '',
+          features: '',
+          is_featured: false,
+          images: []
+        });
+        fetchAdminData();
+      }
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to add car",
         variant: "destructive",
       });
-    } else {
-      await logAdminAction('CREATE', 'car', undefined, undefined, carData);
-      toast({
-        title: "Success",
-        description: "Car added successfully!",
-      });
-      setCarForm({
-        brand: '',
-        model: '',
-        year: new Date().getFullYear(),
-        price: '',
-        range_km: '',
-        battery_capacity: '',
-        charging_time_hours: '',
-        top_speed: '',
-        acceleration_0_100: '',
-        exterior_color: '',
-        interior_color: '',
-        features: '',
-        is_featured: false
-      });
-      fetchAdminData();
     }
   };
 
@@ -451,6 +488,57 @@ export default function Admin() {
     }
   };
 
+  const handleDeleteCar = async (carId: string) => {
+    if (!confirm('Are you sure you want to delete this car?')) return;
+
+    const { error } = await supabase
+      .from('cars')
+      .delete()
+      .eq('id', carId);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      await logAdminAction('DELETE', 'car', carId);
+      toast({
+        title: "Success",
+        description: "Car deleted successfully!",
+      });
+      fetchAdminData();
+    }
+  };
+
+  const exportCarsData = () => {
+    const csvContent = [
+      ['Brand', 'Model', 'Year', 'Price', 'Range (km)', 'Status'],
+      ...cars.map((car: any) => [
+        car.brand,
+        car.model,
+        car.year,
+        car.price,
+        car.range_km,
+        car.availability_status
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `cars-export-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Success",
+      description: "Cars data exported successfully!",
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -581,14 +669,13 @@ export default function Admin() {
         )}
 
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="users">Customers</TabsTrigger>
             <TabsTrigger value="cars">Cars</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="test-drives">Test Drives</TabsTrigger>
             <TabsTrigger value="stations">Stations</TabsTrigger>
-            <TabsTrigger value="audit">Audit Logs</TabsTrigger>
             <TabsTrigger value="add">Add New</TabsTrigger>
           </TabsList>
 
@@ -652,18 +739,46 @@ export default function Admin() {
             </div>
           </TabsContent>
 
-          {/* Enhanced User Management */}
+          {/* Enhanced Customer Management */}
           <TabsContent value="users">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  User Management
+                  Customer Analytics & Management
                 </CardTitle>
-                <CardDescription>Manage user accounts and permissions</CardDescription>
+                <CardDescription>Complete customer overview and user management</CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Customer Analytics Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  <Card className="p-4">
+                    <div className="text-2xl font-bold text-primary">{users.length}</div>
+                    <div className="text-sm text-muted-foreground">Total Customers</div>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="text-2xl font-bold text-green-600">
+                      {users.filter((u: any) => u.role === 'user').length}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Regular Users</div>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {users.filter((u: any) => u.role === 'admin').length}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Admins</div>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {users.filter((u: any) => new Date(u.created_at) > new Date(Date.now() - 30*24*60*60*1000)).length}
+                    </div>
+                    <div className="text-sm text-muted-foreground">New This Month</div>
+                  </Card>
+                </div>
+
+                {/* User List */}
                 <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">All Customers</h3>
                   {users.map((user: any) => (
                     <div key={user.id} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between">
@@ -680,6 +795,7 @@ export default function Admin() {
                           <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                             <span>Joined: {new Date(user.created_at).toLocaleDateString()}</span>
                             {user.phone && <span>Phone: {user.phone}</span>}
+                            <span>Last Updated: {new Date(user.updated_at).toLocaleDateString()}</span>
                           </div>
                         </div>
                         <div className="flex gap-2">
@@ -735,7 +851,7 @@ export default function Admin() {
                         <Badge variant="secondary">{selectedCars.length} selected</Badge>
                       </>
                     )}
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" onClick={exportCarsData}>
                       <Download className="h-4 w-4 mr-2" />
                       Export
                     </Button>
@@ -786,7 +902,11 @@ export default function Admin() {
                               <Button size="sm" variant="outline">
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              <Button size="sm" variant="destructive">
+                              <Button 
+                                size="sm" 
+                                variant="destructive"
+                                onClick={() => handleDeleteCar(car.id)}
+                              >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
@@ -800,7 +920,7 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
-          {/* Orders Management - keeping existing functionality */}
+          {/* Orders Management */}
           <TabsContent value="orders">
             <Card>
               <CardHeader>
@@ -808,35 +928,32 @@ export default function Admin() {
                   <ShoppingBag className="h-5 w-5" />
                   Order Management
                 </CardTitle>
-                <CardDescription>Track and manage customer orders</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {orders.map((order: any) => (
                     <div key={order.id} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-medium">#{order.order_number}</h3>
+                          <p className="font-medium">Order #{order.order_number}</p>
                           <p className="text-sm text-muted-foreground">
-                            {order.cars?.brand} {order.cars?.model} for {order.profiles?.full_name}
+                            {order.profiles?.full_name} • ₦{parseFloat(order.total_amount).toLocaleString()}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {order.cars?.brand} {order.cars?.model}
                           </p>
                         </div>
-                        <Badge className={getStatusColor(order.status)}>
-                          {order.status}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium">₦{parseFloat(order.total_amount).toLocaleString()}</p>
                         <div className="flex gap-2">
+                          <Badge className={getStatusColor(order.status)}>
+                            {order.status}
+                          </Badge>
                           <Select onValueChange={(value) => updateOrderStatus(order.id, value)}>
-                            <SelectTrigger className="w-[140px]">
-                              <SelectValue placeholder="Update status" />
+                            <SelectTrigger className="w-[120px]">
+                              <SelectValue placeholder="Update" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="pending">Pending</SelectItem>
                               <SelectItem value="confirmed">Confirmed</SelectItem>
-                              <SelectItem value="processing">Processing</SelectItem>
-                              <SelectItem value="shipped">Shipped</SelectItem>
                               <SelectItem value="delivered">Delivered</SelectItem>
                               <SelectItem value="cancelled">Cancelled</SelectItem>
                             </SelectContent>
@@ -850,42 +967,36 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
-          {/* Test Drives Management - keeping existing functionality */}
+          {/* Test Drives Management */}
           <TabsContent value="test-drives">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  Test Drive Requests
+                  Test Drive Management
                 </CardTitle>
-                <CardDescription>Manage test drive appointments</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {testDrives.map((testDrive: any) => (
                     <div key={testDrive.id} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-medium">
-                            {testDrive.cars?.brand} {testDrive.cars?.model}
-                          </h3>
+                          <p className="font-medium">{testDrive.profiles?.full_name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {testDrive.profiles?.full_name} • {testDrive.preferred_date} at {testDrive.preferred_time}
+                            {testDrive.cars?.brand} {testDrive.cars?.model} • {testDrive.preferred_date} at {testDrive.preferred_time}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Pickup: {testDrive.pickup_location}
+                            {testDrive.pickup_location}
                           </p>
                         </div>
-                        <Badge className={getStatusColor(testDrive.status)}>
-                          {testDrive.status}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm">License: {testDrive.driver_license_number}</p>
                         <div className="flex gap-2">
+                          <Badge className={getStatusColor(testDrive.status)}>
+                            {testDrive.status}
+                          </Badge>
                           <Select onValueChange={(value) => updateTestDriveStatus(testDrive.id, value)}>
-                            <SelectTrigger className="w-[140px]">
-                              <SelectValue placeholder="Update status" />
+                            <SelectTrigger className="w-[120px]">
+                              <SelectValue placeholder="Update" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="pending">Pending</SelectItem>
@@ -903,7 +1014,7 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
-          {/* Charging Stations - keeping existing functionality */}
+          {/* Charging Stations */}
           <TabsContent value="stations">
             <Card>
               <CardHeader>
@@ -911,7 +1022,6 @@ export default function Admin() {
                   <MapPin className="h-5 w-5" />
                   Charging Stations
                 </CardTitle>
-                <CardDescription>Manage charging infrastructure</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -923,18 +1033,17 @@ export default function Admin() {
                           <p className="text-sm text-muted-foreground">
                             {station.address}, {station.city}, {station.state}
                           </p>
-                          <div className="flex gap-2 mt-2">
-                            <Badge>{station.power_output}</Badge>
-                            <Badge variant="secondary">{station.status}</Badge>
-                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {station.power_output} • {station.connector_types?.join(', ')}
+                          </p>
                         </div>
                         <div className="flex gap-2">
+                          <Badge className={getStatusColor(station.status)}>
+                            {station.status}
+                          </Badge>
                           <Button size="sm" variant="outline">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4" />
-                          </Button>
                         </div>
                       </div>
                     </div>
@@ -944,49 +1053,7 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
-          {/* Audit Logs */}
-          <TabsContent value="audit">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
-                  Audit Logs
-                </CardTitle>
-                <CardDescription>Track all administrative actions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {auditLogs.map((log: any) => (
-                    <div key={log.id} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">{log.action}</Badge>
-                            <span className="text-sm font-medium">{log.resource_type}</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {log.profiles?.full_name || 'Unknown'} • {new Date(log.created_at).toLocaleString()}
-                          </p>
-                          {log.new_values && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Changes: {JSON.stringify(log.new_values)}
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          {log.action === 'CREATE' && <CheckCircle2 className="h-4 w-4 text-green-500" />}
-                          {log.action === 'UPDATE' && <Edit className="h-4 w-4 text-blue-500" />}
-                          {log.action === 'DELETE' && <XCircle className="h-4 w-4 text-red-500" />}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Add New Items - keeping existing functionality */}
+          {/* Add New Forms */}
           <TabsContent value="add">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Add New Car Form */}
@@ -1113,6 +1180,24 @@ export default function Admin() {
                         onChange={(e) => setCarForm({...carForm, is_featured: e.target.checked})}
                       />
                       <Label htmlFor="is_featured">Featured Car</Label>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="car_images">Car Images</Label>
+                      <Input
+                        id="car_images"
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          setCarForm({...carForm, images: files});
+                        }}
+                        className="cursor-pointer"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Select multiple images for this car
+                      </p>
                     </div>
 
                     <Button type="submit" className="w-full">
