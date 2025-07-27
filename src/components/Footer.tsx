@@ -23,24 +23,25 @@ const Footer = () => {
             <h3 className="text-lg font-semibold text-white mb-4">Explore EVs</h3>
             <ul className="space-y-3">
               <li>
-                <a href="/new-arrivals" className="text-slate-300 hover:text-primary transition-colors duration-200">
-                  New Arrivals
+                <a href="/vehicles" className="text-slate-300 hover:text-primary transition-colors duration-200">
+                  All Vehicles
                 </a>
               </li>
               <li>
-                <a href="/best-sellers" className="text-slate-300 hover:text-primary transition-colors duration-200">
-                  Best Sellers
+                <a href="/charging" className="text-slate-300 hover:text-primary transition-colors duration-200">
+                  Charging Stations
                 </a>
               </li>
               <li>
-                <a href="/compare" className="text-slate-300 hover:text-primary transition-colors duration-200">
-                  Compare Vehicles
+                <a href="/finance" className="text-slate-300 hover:text-primary transition-colors duration-200">
+                  Financing Options
                 </a>
               </li>
               <li>
                 <Button 
                   variant="outline" 
                   size="sm" 
+                  onClick={() => window.location.href = '/test-drive'}
                   className="border-primary text-primary hover:bg-primary hover:text-white mt-2"
                 >
                   Book Test Drive
@@ -71,12 +72,12 @@ const Footer = () => {
                 </Button>
               </li>
               <li>
-                <a href="/faq" className="text-slate-300 hover:text-primary transition-colors duration-200">
-                  FAQ & EV Guide
+                <a href="/support" className="text-slate-300 hover:text-primary transition-colors duration-200">
+                  Customer Support
                 </a>
               </li>
               <li>
-                <a href="/financing" className="text-slate-300 hover:text-primary transition-colors duration-200">
+                <a href="/finance" className="text-slate-300 hover:text-primary transition-colors duration-200">
                   Financing Options
                 </a>
               </li>
@@ -103,8 +104,8 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="/refund" className="text-slate-300 hover:text-primary transition-colors duration-200">
-                  Refund Policy
+                <a href="/support" className="text-slate-300 hover:text-primary transition-colors duration-200">
+                  Returns & Support
                 </a>
               </li>
             </ul>

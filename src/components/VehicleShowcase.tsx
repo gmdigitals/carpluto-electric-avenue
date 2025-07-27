@@ -1,111 +1,77 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Car, Zap, Battery, Gauge, Heart, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PurchaseModal } from '@/components/PurchaseModal';
-
-const vehicles = [
-  {
-    id: 1,
-    name: "Tesla Model 3",
-    brand: "Tesla",
-    type: "Sedan",
-    price: "₦18,500,000",
-    image: "/placeholder.svg?height=300&width=400&text=Tesla+Model+3",
-    range: "500km",
-    power: "350kW",
-    charging: "30min",
-    acceleration: "3.1s",
-    badges: ["Best Seller", "Fast Charging"],
-    isNew: true
-  },
-  {
-    id: 2,
-    name: "BYD Atto 3",
-    brand: "BYD",
-    type: "SUV",
-    price: "₦12,800,000",
-    image: "/placeholder.svg?height=300&width=400&text=BYD+Atto+3",
-    range: "420km",
-    power: "150kW",
-    charging: "45min",
-    acceleration: "7.3s",
-    badges: ["Value Pick", "Family SUV"],
-    isNew: false
-  },
-  {
-    id: 3,
-    name: "Tesla Model Y",
-    brand: "Tesla",
-    type: "SUV",
-    price: "₦22,800,000",
-    image: "/placeholder.svg?height=300&width=400&text=Tesla+Model+Y",
-    range: "525km",
-    power: "350kW",
-    charging: "27min",
-    acceleration: "3.5s",
-    badges: ["Premium", "Autopilot"],
-    isNew: true
-  },
-  {
-    id: 4,
-    name: "BYD Dolphin",
-    brand: "BYD",
-    type: "Hatchback",
-    price: "₦8,500,000",
-    image: "/placeholder.svg?height=300&width=400&text=BYD+Dolphin",
-    range: "340km",
-    power: "70kW",
-    charging: "30min",
-    acceleration: "10.9s",
-    badges: ["Compact", "City Car"],
-    isNew: false
-  },
-  {
-    id: 5,
-    name: "Tesla Model S",
-    brand: "Tesla",
-    type: "Luxury Sedan",
-    price: "₦35,200,000",
-    image: "/placeholder.svg?height=300&width=400&text=Tesla+Model+S",
-    range: "650km",
-    power: "750kW",
-    charging: "25min",
-    acceleration: "1.9s",
-    badges: ["Plaid", "Luxury"],
-    isNew: true
-  },
-  {
-    id: 6,
-    name: "BYD Tang",
-    brand: "BYD",
-    type: "Large SUV",
-    price: "₦16,800,000",
-    image: "/placeholder.svg?height=300&width=400&text=BYD+Tang",
-    range: "500km",
-    power: "380kW",
-    charging: "40min",
-    acceleration: "4.4s",
-    badges: ["7-Seater", "AWD"],
-    isNew: false
-  }
-];
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 const filterOptions = [
   { label: "All Vehicles", value: "all" },
   { label: "Tesla", value: "Tesla" },
   { label: "BYD", value: "BYD" },
-  { label: "Sedan", value: "Sedan" },
-  { label: "SUV", value: "SUV" },
-  { label: "Under ₦15M", value: "budget" }
+  { label: "Hyundai", value: "Hyundai" },
+  { label: "Nissan", value: "Nissan" },
+  { label: "Under ₦20M", value: "budget" }
 ];
+
+interface Vehicle {
+  id: string;
+  brand: string;
+  model: string;
+  year: number;
+  price: number;
+  range_km: number;
+  battery_capacity?: number;
+  charging_time_hours?: number;
+  exterior_color?: string;
+  interior_color?: string;
+  top_speed?: number;
+  acceleration_0_100?: number;
+  images: string[];
+  features: string[];
+  specifications: any;
+  availability_status: string;
+  is_featured: boolean;
+}
 
 export function VehicleShowcase() {
   const [activeFilter, setActiveFilter] = useState("all");
-  const [likedVehicles, setLikedVehicles] = useState<number[]>([]);
+  const [likedVehicles, setLikedVehicles] = useState<string[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const toggleLike = (vehicleId: number) => {
+  useEffect(() => {
+    fetchVehicles();
+  }, []);
+
+  const fetchVehicles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('cars')
+        .select('*')
+        .eq('availability_status', 'available')
+        .limit(6);
+      
+      if (error) throw error;
+      setVehicles(data || []);
+    } catch (error) {
+      console.error('Error fetching vehicles:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load vehicles",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleLike = (vehicleId: string) => {
     setLikedVehicles(prev => 
       prev.includes(vehicleId) 
         ? prev.filter(id => id !== vehicleId)
@@ -115,9 +81,42 @@ export function VehicleShowcase() {
 
   const filteredVehicles = vehicles.filter(vehicle => {
     if (activeFilter === "all") return true;
-    if (activeFilter === "budget") return parseInt(vehicle.price.replace(/[₦,]/g, '')) < 15000000;
-    return vehicle.brand === activeFilter || vehicle.type === activeFilter;
+    if (activeFilter === "budget") return vehicle.price < 20000000;
+    return vehicle.brand === activeFilter;
   });
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN',
+      minimumFractionDigits: 0,
+    }).format(price);
+  };
+
+  const handleTestDrive = (vehicleId: string) => {
+    navigate(`/test-drive?car=${vehicleId}`);
+  };
+
+  const handleVehicleClick = (vehicleId: string) => {
+    navigate(`/vehicle/${vehicleId}`);
+  };
+
+  const handleViewAllVehicles = () => {
+    navigate('/vehicles');
+  };
+
+  if (loading) {
+    return (
+      <section className="py-20 bg-muted/30" id="vehicles">
+        <div className="container mx-auto px-6">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading vehicles...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-20 bg-muted/30" id="vehicles">
@@ -157,27 +156,26 @@ export function VehicleShowcase() {
           {filteredVehicles.map((vehicle, index) => (
             <Card 
               key={vehicle.id} 
-              className="group overflow-hidden bg-gradient-card hover:shadow-electric transition-all duration-500 border-border/50 hover:border-primary/30"
+              className="group overflow-hidden bg-gradient-card hover:shadow-electric transition-all duration-500 border-border/50 hover:border-primary/30 cursor-pointer"
               style={{ animationDelay: `${index * 0.1}s` }}
+              onClick={() => handleVehicleClick(vehicle.id)}
             >
               <CardHeader className="p-0 relative">
                 {/* Vehicle Image */}
                 <div className="relative overflow-hidden">
                   <img
-                    src={vehicle.image}
-                    alt={vehicle.name}
+                    src={vehicle.images[0] || "/placeholder.svg?height=300&width=400&text=No+Image"}
+                    alt={`${vehicle.brand} ${vehicle.model}`}
                     className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   
                   {/* Badges */}
                   <div className="absolute top-4 left-4 flex flex-col gap-2">
-                    {vehicle.isNew && (
-                      <Badge className="bg-primary text-primary-foreground">New</Badge>
+                    {vehicle.is_featured && (
+                      <Badge className="bg-primary text-primary-foreground">Featured</Badge>
                     )}
-                    {vehicle.badges.slice(0, 1).map((badge) => (
-                      <Badge key={badge} variant="secondary">{badge}</Badge>
-                    ))}
+                    <Badge variant="secondary">{vehicle.availability_status}</Badge>
                   </div>
 
                   {/* Like Button */}
@@ -185,7 +183,10 @@ export function VehicleShowcase() {
                     variant="ghost"
                     size="icon"
                     className="absolute top-4 right-4 h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background"
-                    onClick={() => toggleLike(vehicle.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleLike(vehicle.id);
+                    }}
                   >
                     <Heart 
                       className={`h-4 w-4 transition-colors ${
@@ -202,41 +203,62 @@ export function VehicleShowcase() {
                 {/* Vehicle Info */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xl font-bold text-foreground">{vehicle.name}</h3>
-                    <span className="text-sm text-muted-foreground">{vehicle.type}</span>
+                    <h3 className="text-xl font-bold text-foreground">{vehicle.brand} {vehicle.model}</h3>
+                    <span className="text-sm text-muted-foreground">{vehicle.year}</span>
                   </div>
-                  <p className="text-2xl font-bold text-primary">{vehicle.price}</p>
+                  <p className="text-2xl font-bold text-primary">{formatPrice(vehicle.price)}</p>
                 </div>
 
                 {/* Specs */}
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="flex items-center gap-2">
                     <Gauge className="h-4 w-4 text-primary" />
-                    <span className="text-sm">{vehicle.range}</span>
+                    <span className="text-sm">{vehicle.range_km}km</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-accent" />
-                    <span className="text-sm">{vehicle.power}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Battery className="h-4 w-4 text-primary" />
-                    <span className="text-sm">{vehicle.charging}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Car className="h-4 w-4 text-accent" />
-                    <span className="text-sm">0-100: {vehicle.acceleration}</span>
-                  </div>
+                  {vehicle.battery_capacity && (
+                    <div className="flex items-center gap-2">
+                      <Battery className="h-4 w-4 text-primary" />
+                      <span className="text-sm">{vehicle.battery_capacity}kWh</span>
+                    </div>
+                  )}
+                  {vehicle.charging_time_hours && (
+                    <div className="flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-accent" />
+                      <span className="text-sm">{vehicle.charging_time_hours}h</span>
+                    </div>
+                  )}
+                  {vehicle.acceleration_0_100 && (
+                    <div className="flex items-center gap-2">
+                      <Car className="h-4 w-4 text-accent" />
+                      <span className="text-sm">0-100: {vehicle.acceleration_0_100}s</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
 
               <CardFooter className="p-6 pt-0 flex gap-2">
-                <PurchaseModal vehicle={vehicle}>
-                  <Button className="flex-1 bg-gradient-primary hover:shadow-electric transition-all duration-300">
+                <PurchaseModal vehicle={{
+                  id: vehicle.id,
+                  brand: vehicle.brand,
+                  model: vehicle.model,
+                  price: vehicle.price
+                }}>
+                  <Button 
+                    className="flex-1 bg-gradient-primary hover:shadow-electric transition-all duration-300"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     Buy Now
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </PurchaseModal>
-                <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                <Button 
+                  variant="outline" 
+                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleTestDrive(vehicle.id);
+                  }}
+                >
                   Test Drive
                 </Button>
               </CardFooter>
@@ -249,6 +271,7 @@ export function VehicleShowcase() {
           <Button 
             variant="outline" 
             size="lg" 
+            onClick={handleViewAllVehicles}
             className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
           >
             View All Vehicles

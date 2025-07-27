@@ -32,7 +32,7 @@ export function PurchaseModal({ vehicle, children }: PurchaseModalProps) {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const priceInNaira = parseInt(vehicle.price.replace(/[₦,]/g, ''));
+  const priceInNaira = typeof vehicle.price === 'number' ? vehicle.price : parseInt(String(vehicle.price).replace(/[₦,]/g, ''));
 
   const handlePurchase = async () => {
     if (!user) {
@@ -81,7 +81,7 @@ export function PurchaseModal({ vehicle, children }: PurchaseModalProps) {
         email: user.email,
         orderId: orderData.id,
         orderNumber: orderNumber,
-        vehicleName: vehicle.name,
+        vehicleName: vehicle.name || `${vehicle.brand} ${vehicle.model}`,
       });
 
       const { data, error } = await supabase.functions.invoke('create-payment', {
@@ -90,10 +90,10 @@ export function PurchaseModal({ vehicle, children }: PurchaseModalProps) {
           email: user.email,
           orderId: orderData.id,
           orderNumber: orderNumber,
-          vehicleName: vehicle.name,
+          vehicleName: vehicle.name || `${vehicle.brand} ${vehicle.model}`,
           metadata: {
             vehicle_id: vehicle.id,
-            vehicle_name: vehicle.name,
+            vehicle_name: vehicle.name || `${vehicle.brand} ${vehicle.model}`,
             delivery_address: deliveryAddress,
             notes: notes,
           },
@@ -135,16 +135,18 @@ export function PurchaseModal({ vehicle, children }: PurchaseModalProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
-            Purchase {vehicle.name}
+            Purchase {vehicle.name || `${vehicle.brand} ${vehicle.model}`}
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
           {/* Vehicle Summary */}
           <div className="bg-muted/50 p-4 rounded-lg">
-            <h3 className="font-semibold text-lg">{vehicle.name}</h3>
-            <p className="text-muted-foreground">{vehicle.brand} • {vehicle.type}</p>
-            <p className="text-2xl font-bold text-primary mt-2">{vehicle.price}</p>
+            <h3 className="font-semibold text-lg">{vehicle.name || `${vehicle.brand} ${vehicle.model}`}</h3>
+            <p className="text-muted-foreground">{vehicle.brand} • {vehicle.type || 'Electric Vehicle'}</p>
+            <p className="text-2xl font-bold text-primary mt-2">
+              {typeof vehicle.price === 'string' ? vehicle.price : `₦${vehicle.price.toLocaleString()}`}
+            </p>
           </div>
 
           {/* Delivery Details */}
@@ -190,7 +192,9 @@ export function PurchaseModal({ vehicle, children }: PurchaseModalProps) {
               You'll be redirected to Paystack to complete your payment securely.
             </p>
             <p className="font-semibold">
-              Total Amount: <span className="text-primary">{vehicle.price}</span>
+              Total Amount: <span className="text-primary">
+                {typeof vehicle.price === 'string' ? vehicle.price : `₦${vehicle.price.toLocaleString()}`}
+              </span>
             </p>
           </div>
 
