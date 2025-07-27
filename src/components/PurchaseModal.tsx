@@ -10,11 +10,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ShoppingCart, Loader2 } from 'lucide-react';
 
 interface Vehicle {
-  id: number;
-  name: string;
-  price: string;
+  id: string;
+  name?: string;
+  price: number;
   brand: string;
-  type: string;
+  type?: string;
+  model: string;
 }
 
 interface PurchaseModalProps {
