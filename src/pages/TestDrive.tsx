@@ -167,7 +167,7 @@ const TestDrive = () => {
               Premium Test Drive <span className="text-primary">Experience</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-              Experience the future of driving with our exclusive 3-minute premium test drive service. 
+              Experience the future of driving with our exclusive 20-minute premium test drive service. 
               Feel the power of electric vehicles at our partnered showrooms across Nigeria.
             </p>
             
@@ -205,7 +205,7 @@ const TestDrive = () => {
                   <Car className="h-8 w-8 text-primary" />
                 </div>
                 <CardTitle className="text-2xl">Premium Test Drive</CardTitle>
-                <p className="text-muted-foreground">3-minute exclusive experience</p>
+                <p className="text-muted-foreground">20-minute exclusive experience</p>
               </CardHeader>
               <CardContent className="text-center">
                 <div className="text-4xl font-bold text-primary mb-2">₦50,000</div>
@@ -213,7 +213,7 @@ const TestDrive = () => {
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>3-minute premium experience</span>
+                    <span>20-minute premium experience</span>
                   </div>
                   <div className="flex items-center justify-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-500" />

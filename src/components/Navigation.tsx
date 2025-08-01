@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFeatureToggles } from '@/hooks/useFeatureToggles';
 import { Menu, X, Zap, Search, User, ShoppingBag, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,13 +10,14 @@ import { Badge } from '@/components/ui/badge';
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, profile, signOut } = useAuth();
+  const { features } = useFeatureToggles();
 
   const navItems = [
     { label: 'Vehicles', href: '/vehicles' },
     { label: 'Test Drive', href: '/test-drive' },
-    { label: 'Charging', href: '/charging' },
-    { label: 'Finance', href: '/finance' },
-    { label: 'Support', href: '/support' }
+    ...(features.enableChargingStations ? [{ label: 'Charging', href: '/charging' }] : []),
+    ...(features.enableFinancing ? [{ label: 'Finance', href: '/finance' }] : []),
+    ...(features.enableEvSupport ? [{ label: 'Support', href: '/support' }] : [])
   ];
 
   return (

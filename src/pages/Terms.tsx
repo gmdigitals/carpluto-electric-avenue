@@ -42,9 +42,7 @@ const Terms = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    CarPluto operates an online platform for the sale of electric vehicles in Nigeria. 
-                    Our services include vehicle sales, test drive scheduling, financing assistance, 
-                    and customer support.
+                    CARPLUTO is not a dealership, we are an EV Online solutions platform. By aggregating listings from our network of certified Nigerian dealers and private sellers, we offer test drive scheduling to encourage adoption, and enhance payment for the dealer.
                   </p>
                 </CardContent>
               </Card>
@@ -92,7 +90,7 @@ const Terms = () => {
                 <CardContent>
                   <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                     <li>Valid driver's license required for all test drives</li>
-                    <li>Test drive fee of ₦50,000 per 3-minute session</li>
+                    <li>Test drive fee of ₦50,000 per 20-minute session</li>
                     <li>Insurance coverage provided during authorized test drives</li>
                     <li>Customer responsible for any damages during test drive</li>
                     <li>Test drives must be scheduled in advance</li>
@@ -240,8 +238,7 @@ const Terms = () => {
                   </p>
                   <div className="space-y-2 text-muted-foreground">
                     <p>Email: legal@carpluto.com.ng</p>
-                    <p>Phone: +234 800 000 0000</p>
-                    <p>Address: CarPluto Nigeria Ltd, Lagos, Nigeria</p>
+                    <p>Phone: 09021475523</p>
                   </div>
                 </CardContent>
               </Card>

@@ -79,6 +79,7 @@ export default function Admin() {
   const [analytics, setAnalytics] = useState<AnalyticsData>({});
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [selectedCars, setSelectedCars] = useState<string[]>([]);
+  const [featureToggles, setFeatureToggles] = useState([]);
 
   const [carForm, setCarForm] = useState({
     brand: '',
@@ -125,7 +126,8 @@ export default function Admin() {
       fetchTestDrives(),
       fetchChargingStations(),
       fetchUsers(),
-      fetchAuditLogs()
+      fetchAuditLogs(),
+      fetchFeatureToggles()
     ]);
   };
 
@@ -207,6 +209,16 @@ export default function Admin() {
       setAuditLogs(data || []);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
+    }
+  };
+
+  const fetchFeatureToggles = async () => {
+    try {
+      const { data, error } = await supabase.from('admin_settings').select('*').order('setting_key', { ascending: true });
+      if (error) throw error;
+      setFeatureToggles(data || []);
+    } catch (error) {
+      console.error('Error fetching feature toggles:', error);
     }
   };
 
@@ -488,6 +500,27 @@ export default function Admin() {
     }
   };
 
+  const updateFeatureToggle = async (settingKey: string, value: boolean) => {
+    const { error } = await supabase
+      .from('admin_settings')
+      .update({ setting_value: value })
+      .eq('setting_key', settingKey);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Feature toggle updated!",
+      });
+      fetchFeatureToggles();
+    }
+  };
+
   const handleDeleteCar = async (carId: string) => {
     if (!confirm('Are you sure you want to delete this car?')) return;
 
@@ -669,7 +702,7 @@ export default function Admin() {
         )}
 
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="users">Customers</TabsTrigger>
             <TabsTrigger value="cars">Cars</TabsTrigger>
@@ -677,6 +710,7 @@ export default function Admin() {
             <TabsTrigger value="test-drives">Test Drives</TabsTrigger>
             <TabsTrigger value="stations">Stations</TabsTrigger>
             <TabsTrigger value="add">Add New</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
           {/* Analytics Dashboard */}
@@ -1307,6 +1341,47 @@ export default function Admin() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Feature Toggles */}
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Feature Toggles
+                </CardTitle>
+                <CardDescription>
+                  Control which features are enabled or disabled site-wide
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {featureToggles.map((toggle: any) => (
+                    <div key={toggle.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <h3 className="font-medium capitalize">
+                          {toggle.setting_key.replace(/^enable_/, '').replace(/_/g, ' ')}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">{toggle.description}</p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Badge variant={toggle.setting_value ? "default" : "secondary"}>
+                          {toggle.setting_value ? "Enabled" : "Disabled"}
+                        </Badge>
+                        <Button
+                          variant={toggle.setting_value ? "destructive" : "default"}
+                          size="sm"
+                          onClick={() => updateFeatureToggle(toggle.setting_key, !toggle.setting_value)}
+                        >
+                          {toggle.setting_value ? "Disable" : "Enable"}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

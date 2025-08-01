@@ -187,8 +187,7 @@ const Privacy = () => {
                   </p>
                   <div className="space-y-2 text-muted-foreground">
                     <p>Email: privacy@carpluto.com.ng</p>
-                    <p>Phone: +234 800 000 0000</p>
-                    <p>Address: CarPluto Nigeria Ltd, Lagos, Nigeria</p>
+                    <p>Phone: 09021475523</p>
                   </div>
                 </CardContent>
               </Card>

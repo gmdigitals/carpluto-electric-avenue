@@ -1,15 +1,20 @@
+import { useState } from 'react';
+import { useFeatureToggles } from '@/hooks/useFeatureToggles';
 import { Mail, Phone, MessageCircle, Twitter, Instagram, Linkedin, Shield, Accessibility } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 const Footer = () => {
+  const [email, setEmail] = useState('');
+  const { features } = useFeatureToggles();
+
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Newsletter signup logic will be implemented later
   };
 
   const handleWhatsAppContact = () => {
-    window.open('https://wa.me/2348000000000?text=Hello%20CARPLUTO,%20I%20need%20assistance%20with%20electric%20vehicles', '_blank');
+    window.open('https://wa.me/09021475523?text=Hello%20CARPLUTO,%20I%20need%20assistance%20with%20electric%20vehicles', '_blank');
   };
 
   return (
@@ -27,16 +32,20 @@ const Footer = () => {
                   All Vehicles
                 </a>
               </li>
-              <li>
-                <a href="/charging" className="text-slate-300 hover:text-primary transition-colors duration-200">
-                  Charging Stations
-                </a>
-              </li>
-              <li>
-                <a href="/finance" className="text-slate-300 hover:text-primary transition-colors duration-200">
-                  Financing Options
-                </a>
-              </li>
+              {features.enableChargingStations && (
+                <li>
+                  <a href="/charging" className="text-slate-300 hover:text-primary transition-colors duration-200">
+                    Charging Stations
+                  </a>
+                </li>
+              )}
+              {features.enableFinancing && (
+                <li>
+                  <a href="/finance" className="text-slate-300 hover:text-primary transition-colors duration-200">
+                    Financing Options
+                  </a>
+                </li>
+              )}
               <li>
                 <Button 
                   variant="outline" 
@@ -60,6 +69,12 @@ const Footer = () => {
                   hello@carpluto.com.ng
                 </a>
               </li>
+              <li className="flex items-center space-x-2">
+                <Phone className="h-4 w-4 text-primary" />
+                <a href="tel:09021475523" className="text-slate-300 hover:text-primary transition-colors duration-200">
+                  09021475523
+                </a>
+              </li>
               <li>
                 <Button 
                   variant="outline" 
@@ -71,16 +86,13 @@ const Footer = () => {
                   <span>Live Chat</span>
                 </Button>
               </li>
-              <li>
-                <a href="/support" className="text-slate-300 hover:text-primary transition-colors duration-200">
-                  Customer Support
-                </a>
-              </li>
-              <li>
-                <a href="/finance" className="text-slate-300 hover:text-primary transition-colors duration-200">
-                  Financing Options
-                </a>
-              </li>
+              {features.enableEvSupport && (
+                <li>
+                  <a href="/support" className="text-slate-300 hover:text-primary transition-colors duration-200">
+                    Customer Support
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
 
@@ -103,11 +115,13 @@ const Footer = () => {
                   Terms of Service
                 </a>
               </li>
-              <li>
-                <a href="/support" className="text-slate-300 hover:text-primary transition-colors duration-200">
-                  Returns & Support
-                </a>
-              </li>
+              {features.enableEvSupport && (
+                <li>
+                  <a href="/support" className="text-slate-300 hover:text-primary transition-colors duration-200">
+                    Returns & Support
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
 
@@ -122,6 +136,8 @@ const Footer = () => {
                 <Input 
                   type="email" 
                   placeholder="Your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="bg-slate-800 border-slate-700 text-white placeholder-slate-400 flex-1"
                 />
                 <Button type="submit" size="sm" className="bg-primary hover:bg-primary/90">
