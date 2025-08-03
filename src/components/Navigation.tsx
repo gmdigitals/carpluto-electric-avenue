@@ -26,11 +26,11 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <Zap className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-foreground">CARPLUTO</span>
-            <span className="text-sm text-muted-foreground">.ng</span>
+            <img 
+              src="/lovable-uploads/80acdd1a-fb67-4940-ba3e-f5696cf1959c.png" 
+              alt="CARPLUTO Logo" 
+              className="h-8 w-auto"
+            />
           </div>
 
           {/* Desktop Navigation */}

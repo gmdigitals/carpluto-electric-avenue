@@ -168,7 +168,7 @@ const TestDrive = () => {
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
               Experience the future of driving with our exclusive 20-minute premium test drive service. 
-              Feel the power of electric vehicles at our partnered showrooms across Nigeria.
+              Feel the power of electric vehicles at our verified partnered dealers across Nigeria.
             </p>
             
             {/* Premium Features */}
@@ -181,13 +181,6 @@ const TestDrive = () => {
                 <p className="text-sm text-muted-foreground text-center">Dedicated concierge service with complimentary refreshments</p>
               </div>
               
-              <div className="flex flex-col items-center p-6 bg-card rounded-lg border">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                  <AlertCircle className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">Fully Insured</h3>
-                <p className="text-sm text-muted-foreground text-center">Comprehensive insurance coverage during your test drive</p>
-              </div>
               
               <div className="flex flex-col items-center p-6 bg-card rounded-lg border">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
@@ -235,8 +228,8 @@ const TestDrive = () => {
 
         {/* Showroom Locations */}
         <div className="container mx-auto px-6 py-16 bg-muted/30">
-          <h2 className="text-3xl font-bold text-center mb-12">Our Premium Showroom Locations</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <h2 className="text-3xl font-bold text-center mb-12">Our Premium Verified Dealership Locations</h2>
+          <div className="grid grid-cols-1 gap-8 max-w-2xl mx-auto">
             <Card className="h-full">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -258,58 +251,6 @@ const TestDrive = () => {
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-500" />
                     <span className="text-sm">Tesla & luxury EV specialists</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  Abuja Central
-                </CardTitle>
-                <p className="text-muted-foreground">Central Business District, Abuja</p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">State-of-the-art facility</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">BYD & Hyundai specialists</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">Premium customer service</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  Port Harcourt
-                </CardTitle>
-                <p className="text-muted-foreground">GRA Phase 2, Port Harcourt</p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">Spacious test drive area</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">Multi-brand EV showcase</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">Executive customer lounge</span>
                   </div>
                 </div>
               </CardContent>
@@ -407,10 +348,8 @@ const TestDrive = () => {
                       className="w-full px-3 py-2 border border-input bg-background rounded-md"
                       required
                     >
-                      <option value="">Select a showroom</option>
+                      <option value="">Select a dealership location</option>
                       <option value="Lagos Island - Victoria Island, Lagos">Lagos Island - Victoria Island, Lagos</option>
-                      <option value="Abuja Central - Central Business District, Abuja">Abuja Central - Central Business District, Abuja</option>
-                      <option value="Port Harcourt - GRA Phase 2, Port Harcourt">Port Harcourt - GRA Phase 2, Port Harcourt</option>
                     </select>
                   </div>
 

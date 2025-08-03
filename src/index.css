@@ -9,13 +9,13 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Base colors - Clean automotive whites and grays */
-    --background: 0 0% 98%;
-    --foreground: 220 13% 18%;
+    /* Base colors for dark theme */
+    --background: 222 20% 11%;
+    --foreground: 210 20% 85%;
 
-    /* Card system - Premium elevation */
-    --card: 0 0% 100%;
-    --card-foreground: 220 13% 18%;
+    /* Card system */
+    --card: 222 20% 15%;
+    --card-foreground: 210 20% 85%;
 
     /* Popover system */
     --popover: 0 0% 100%;
