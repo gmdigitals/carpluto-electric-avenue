@@ -1,6 +1,7 @@
 import { Navigation } from '@/components/Navigation';
 import { EVHero } from '@/components/EVHero';
 import { VehicleShowcase } from '@/components/VehicleShowcase';
+import { EVBrandLogos } from '@/components/EVBrandLogos';
 import Footer from '@/components/Footer';
 
 const Index = () => {
@@ -9,6 +10,7 @@ const Index = () => {
       <Navigation />
       <EVHero />
       <VehicleShowcase />
+      <EVBrandLogos />
       <Footer />
     </div>
   );

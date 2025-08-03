@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import { useFeatureToggles } from '@/hooks/useFeatureToggles';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +42,7 @@ const VehicleDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { features } = useFeatureToggles();
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
@@ -309,10 +311,10 @@ const VehicleDetails = () => {
           {/* Detailed Information Tabs */}
           <div className="mt-16">
             <Tabs defaultValue="specifications" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className={`grid w-full ${features.enableFinancing ? 'grid-cols-3' : 'grid-cols-2'}`}>
                 <TabsTrigger value="specifications">Specifications</TabsTrigger>
                 <TabsTrigger value="features">Features</TabsTrigger>
-                <TabsTrigger value="financing">Financing</TabsTrigger>
+                {features.enableFinancing && <TabsTrigger value="financing">Financing</TabsTrigger>}
               </TabsList>
               
               <TabsContent value="specifications" className="mt-6">
@@ -378,38 +380,40 @@ const VehicleDetails = () => {
                 </Card>
               </TabsContent>
               
-              <TabsContent value="financing" className="mt-6">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="font-semibold mb-4">Financing Options</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="p-4 border rounded-lg">
-                            <h4 className="font-semibold mb-2">Bank Financing</h4>
-                            <p className="text-sm text-muted-foreground">Get up to 85% financing with competitive rates from our partner banks.</p>
-                          </div>
-                          <div className="p-4 border rounded-lg">
-                            <h4 className="font-semibold mb-2">Lease Options</h4>
-                            <p className="text-sm text-muted-foreground">Flexible lease terms with maintenance packages included.</p>
+              {features.enableFinancing && (
+                <TabsContent value="financing" className="mt-6">
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="space-y-6">
+                        <div>
+                          <h3 className="font-semibold mb-4">Financing Options</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="p-4 border rounded-lg">
+                              <h4 className="font-semibold mb-2">Bank Financing</h4>
+                              <p className="text-sm text-muted-foreground">Get up to 85% financing with competitive rates from our partner banks.</p>
+                            </div>
+                            <div className="p-4 border rounded-lg">
+                              <h4 className="font-semibold mb-2">Lease Options</h4>
+                              <p className="text-sm text-muted-foreground">Flexible lease terms with maintenance packages included.</p>
+                            </div>
                           </div>
                         </div>
+                        
+                        <Separator />
+                        
+                        <div>
+                          <h4 className="font-semibold mb-2">Need Help with Financing?</h4>
+                          <p className="text-muted-foreground mb-4">Our finance team can help you find the best payment option.</p>
+                          <Button variant="outline">
+                            <Phone className="h-4 w-4 mr-2" />
+                            Contact Finance Team
+                          </Button>
+                        </div>
                       </div>
-                      
-                      <Separator />
-                      
-                      <div>
-                        <h4 className="font-semibold mb-2">Need Help with Financing?</h4>
-                        <p className="text-muted-foreground mb-4">Our finance team can help you find the best payment option.</p>
-                        <Button variant="outline">
-                          <Phone className="h-4 w-4 mr-2" />
-                          Contact Finance Team
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              )}
             </Tabs>
           </div>
         </div>

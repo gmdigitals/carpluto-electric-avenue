@@ -15,6 +15,7 @@ export function Navigation() {
   const navItems = [
     { label: 'Vehicles', href: '/vehicles' },
     { label: 'Test Drive', href: '/test-drive' },
+    { label: 'Cost Calculator', href: '/cost-calculator' },
     ...(features.enableChargingStations ? [{ label: 'Charging', href: '/charging' }] : []),
     ...(features.enableFinancing ? [{ label: 'Finance', href: '/finance' }] : []),
     ...(features.enableEvSupport ? [{ label: 'Support', href: '/support' }] : [])
@@ -26,11 +27,13 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <img 
-              src="/lovable-uploads/80acdd1a-fb67-4940-ba3e-f5696cf1959c.png" 
-              alt="CARPLUTO Logo" 
-              className="h-8 w-auto"
-            />
+            <Link to="/">
+              <img 
+                src="/lovable-uploads/80acdd1a-fb67-4940-ba3e-f5696cf1959c.png" 
+                alt="CARPLUTO Logo" 
+                className="h-8 w-auto cursor-pointer"
+              />
+            </Link>
           </div>
 
           {/* Desktop Navigation */}

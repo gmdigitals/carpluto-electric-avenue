@@ -32,6 +32,11 @@ const Footer = () => {
                   All Vehicles
                 </a>
               </li>
+              <li>
+                <a href="/cost-calculator" className="text-slate-300 hover:text-primary transition-colors duration-200">
+                  Cost Calculator
+                </a>
+              </li>
               {features.enableChargingStations && (
                 <li>
                   <a href="/charging" className="text-slate-300 hover:text-primary transition-colors duration-200">
@@ -193,7 +198,7 @@ const Footer = () => {
             {/* Copyright */}
             <div className="text-center md:text-left">
               <p className="text-slate-400 text-sm">
-                © 2024 <span className="text-white font-semibold">CARPLUTO.com.ng</span> – Nigeria's Electric Vehicle Hub
+                © 2025 <span className="text-white font-semibold">CARPLUTO</span> – Nigeria's Trusted EV Marketplace (A GM Digital Enterprises Services)
               </p>
             </div>
 

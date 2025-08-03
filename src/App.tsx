@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ForgotPassword from "./pages/ForgotPassword";
+import CostCalculator from "./pages/CostCalculator";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -31,10 +33,12 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/cost-calculator" element={<CostCalculator />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/vehicles" element={<Vehicles />} />
             <Route path="/vehicle/:id" element={<VehicleDetails />} />
             <Route path="/test-drive" element={<TestDrive />} />

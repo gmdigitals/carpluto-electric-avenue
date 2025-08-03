@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Zap, Battery, Gauge } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import heroEv1 from '@/assets/hero-ev-1.jpg';
@@ -46,6 +47,7 @@ const heroSlides = [
 
 export function EVHero() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -116,6 +118,7 @@ export function EVHero() {
               <Button 
                 size="lg" 
                 className="bg-gradient-primary hover:shadow-electric transition-all duration-300 animate-electric-pulse"
+                onClick={() => navigate('/vehicles')}
               >
                 {slide.cta}
               </Button>
@@ -123,6 +126,7 @@ export function EVHero() {
                 variant="outline" 
                 size="lg" 
                 className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                onClick={() => navigate('/cost-calculator')}
               >
                 {slide.price}
               </Button>

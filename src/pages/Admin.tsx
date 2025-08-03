@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -614,8 +614,15 @@ export default function Admin() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
+              <Link to="/">
+                <img 
+                  src="/lovable-uploads/80acdd1a-fb67-4940-ba3e-f5696cf1959c.png" 
+                  alt="CARPLUTO Logo" 
+                  className="h-6 w-auto cursor-pointer"
+                />
+              </Link>
               <Shield className="h-6 w-6 text-primary" />
-              <span className="font-bold text-xl">CarPluto Admin</span>
+              <span className="font-bold text-xl">CARPLUTO Admin</span>
               <Badge variant="default" className="ml-2">{profile.role}</Badge>
             </div>
             <div className="flex items-center gap-4">
@@ -702,15 +709,15 @@ export default function Admin() {
         )}
 
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="users">Customers</TabsTrigger>
-            <TabsTrigger value="cars">Cars</TabsTrigger>
-            <TabsTrigger value="orders">Orders</TabsTrigger>
-            <TabsTrigger value="test-drives">Test Drives</TabsTrigger>
-            <TabsTrigger value="stations">Stations</TabsTrigger>
-            <TabsTrigger value="add">Add New</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-1">
+            <TabsTrigger value="analytics" className="text-xs lg:text-sm">Analytics</TabsTrigger>
+            <TabsTrigger value="users" className="text-xs lg:text-sm">Customers</TabsTrigger>
+            <TabsTrigger value="cars" className="text-xs lg:text-sm">Cars</TabsTrigger>
+            <TabsTrigger value="orders" className="text-xs lg:text-sm">Orders</TabsTrigger>
+            <TabsTrigger value="test-drives" className="text-xs lg:text-sm">Test Drives</TabsTrigger>
+            <TabsTrigger value="stations" className="text-xs lg:text-sm">Stations</TabsTrigger>
+            <TabsTrigger value="add" className="text-xs lg:text-sm">Add New</TabsTrigger>
+            <TabsTrigger value="settings" className="text-xs lg:text-sm">Settings</TabsTrigger>
           </TabsList>
 
           {/* Analytics Dashboard */}

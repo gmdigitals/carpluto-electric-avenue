@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,15 +56,18 @@ export default function Auth() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="flex items-center gap-1">
-              <Car className="h-8 w-8 text-primary" />
-              <Zap className="h-6 w-6 text-accent" />
-            </div>
+            <Link to="/">
+              <img 
+                src="/lovable-uploads/80acdd1a-fb67-4940-ba3e-f5696cf1959c.png" 
+                alt="CARPLUTO Logo" 
+                className="h-8 w-auto cursor-pointer"
+              />
+            </Link>
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            CarPluto
+            CARPLUTO
           </h1>
-          <p className="text-muted-foreground">Nigeria's Premier EV Showroom</p>
+          <p className="text-muted-foreground">Nigeria's Trusted EV Marketplace</p>
         </div>
 
         <Card className="backdrop-blur-sm bg-background/80 border-primary/20">
@@ -112,6 +115,14 @@ export default function Auth() {
                   >
                     {isLoading ? "Signing In..." : "Sign In"}
                   </Button>
+                  <div className="text-center mt-2">
+                    <Link 
+                      to="/forgot-password" 
+                      className="text-sm text-primary hover:underline"
+                    >
+                      Forgot your password?
+                    </Link>
+                  </div>
                 </form>
               </TabsContent>
               
