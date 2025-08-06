@@ -2,9 +2,12 @@ import { Navigation } from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useFeatureToggles } from '@/hooks/useFeatureToggles';
 import { Zap, Target, Heart, Shield, Award, CheckCircle, TrendingUp, Users, Globe } from 'lucide-react';
 
 const About = () => {
+  const { features } = useFeatureToggles();
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -144,29 +147,31 @@ const About = () => {
         </section>
 
         {/* Key Numbers */}
-        <section className="py-20 bg-muted/30">
-          <div className="container mx-auto px-6">
-            <h2 className="text-3xl font-bold text-center mb-12">Our Impact</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              <div className="text-center">
-                <div className="text-4xl font-bold text-primary mb-2">500+</div>
-                <div className="text-muted-foreground">EVs Listed</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-primary mb-2">₦2B+</div>
-                <div className="text-muted-foreground">Transactions Facilitated</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-primary mb-2">15+</div>
-                <div className="text-muted-foreground">EV Models</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-primary mb-2">99%</div>
-                <div className="text-muted-foreground">Customer Satisfaction</div>
+        {features.showOurImpact && (
+          <section className="py-20 bg-muted/30">
+            <div className="container mx-auto px-6">
+              <h2 className="text-3xl font-bold text-center mb-12">Our Impact</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-primary mb-2">500+</div>
+                  <div className="text-muted-foreground">EVs Listed</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-primary mb-2">₦2B+</div>
+                  <div className="text-muted-foreground">Transactions Facilitated</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-primary mb-2">15+</div>
+                  <div className="text-muted-foreground">EV Models</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-primary mb-2">99%</div>
+                  <div className="text-muted-foreground">Customer Satisfaction</div>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* Our Commitment */}
         <section className="py-20">

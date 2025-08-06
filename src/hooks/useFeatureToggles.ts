@@ -11,6 +11,7 @@ interface FeatureToggles {
   enableFinancing: boolean;
   enableChargingStations: boolean;
   enableEvSupport: boolean;
+  showOurImpact: boolean;
 }
 
 export const useFeatureToggles = () => {
@@ -18,6 +19,7 @@ export const useFeatureToggles = () => {
     enableFinancing: false,
     enableChargingStations: false,
     enableEvSupport: false,
+    showOurImpact: true,
   });
   const [loading, setLoading] = useState(true);
 
@@ -45,6 +47,7 @@ export const useFeatureToggles = () => {
         enableFinancing: toggleMap['enable_financing'] || false,
         enableChargingStations: toggleMap['enable_charging_stations'] || false,
         enableEvSupport: toggleMap['enable_ev_support'] || false,
+        showOurImpact: toggleMap['show_our_impact'] !== false,
       });
     } catch (error) {
       console.error('Error fetching feature toggles:', error);

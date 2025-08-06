@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { useFeatureToggles } from '@/hooks/useFeatureToggles';
+import { ReviewsSection } from '@/components/ReviewsSection';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -311,9 +312,10 @@ const VehicleDetails = () => {
           {/* Detailed Information Tabs */}
           <div className="mt-16">
             <Tabs defaultValue="specifications" className="w-full">
-              <TabsList className={`grid w-full ${features.enableFinancing ? 'grid-cols-3' : 'grid-cols-2'}`}>
+              <TabsList className={`grid w-full ${features.enableFinancing ? 'grid-cols-4' : 'grid-cols-3'}`}>
                 <TabsTrigger value="specifications">Specifications</TabsTrigger>
                 <TabsTrigger value="features">Features</TabsTrigger>
+                <TabsTrigger value="reviews">Reviews</TabsTrigger>
                 {features.enableFinancing && <TabsTrigger value="financing">Financing</TabsTrigger>}
               </TabsList>
               
@@ -378,6 +380,10 @@ const VehicleDetails = () => {
                     </div>
                   </CardContent>
                 </Card>
+              </TabsContent>
+              
+              <TabsContent value="reviews" className="mt-6">
+                <ReviewsSection carId={vehicle.id} />
               </TabsContent>
               
               {features.enableFinancing && (

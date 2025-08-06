@@ -34,7 +34,8 @@ import {
   RefreshCw,
   BarChart3,
   PieChart,
-  Activity
+  Activity,
+  Star
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart as RechartsPieChart, Cell } from 'recharts';
 
@@ -80,6 +81,7 @@ export default function Admin() {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [selectedCars, setSelectedCars] = useState<string[]>([]);
   const [featureToggles, setFeatureToggles] = useState([]);
+  const [reviews, setReviews] = useState([]);
 
   const [carForm, setCarForm] = useState({
     brand: '',
@@ -127,7 +129,8 @@ export default function Admin() {
       fetchChargingStations(),
       fetchUsers(),
       fetchAuditLogs(),
-      fetchFeatureToggles()
+      fetchFeatureToggles(),
+      fetchReviews()
     ]);
   };
 
@@ -219,6 +222,23 @@ export default function Admin() {
       setFeatureToggles(data || []);
     } catch (error) {
       console.error('Error fetching feature toggles:', error);
+    }
+  };
+
+  const fetchReviews = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select(`
+          *,
+          profiles(full_name, email),
+          cars(brand, model)
+        `)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setReviews(data || []);
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
     }
   };
 
@@ -521,6 +541,27 @@ export default function Admin() {
     }
   };
 
+  const updateReviewStatus = async (id: string, status: string, adminNotes?: string) => {
+    const { error } = await supabase
+      .from('reviews')
+      .update({ status, admin_notes: adminNotes })
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: `Review ${status} successfully!`,
+      });
+      fetchReviews();
+    }
+  };
+
   const handleDeleteCar = async (carId: string) => {
     if (!confirm('Are you sure you want to delete this car?')) return;
 
@@ -709,12 +750,13 @@ export default function Admin() {
         )}
 
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-1">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-1">
             <TabsTrigger value="analytics" className="text-xs lg:text-sm">Analytics</TabsTrigger>
             <TabsTrigger value="users" className="text-xs lg:text-sm">Customers</TabsTrigger>
             <TabsTrigger value="cars" className="text-xs lg:text-sm">Cars</TabsTrigger>
             <TabsTrigger value="orders" className="text-xs lg:text-sm">Orders</TabsTrigger>
             <TabsTrigger value="test-drives" className="text-xs lg:text-sm">Test Drives</TabsTrigger>
+            <TabsTrigger value="reviews" className="text-xs lg:text-sm">Reviews</TabsTrigger>
             <TabsTrigger value="stations" className="text-xs lg:text-sm">Stations</TabsTrigger>
             <TabsTrigger value="add" className="text-xs lg:text-sm">Add New</TabsTrigger>
             <TabsTrigger value="settings" className="text-xs lg:text-sm">Settings</TabsTrigger>
@@ -1348,6 +1390,106 @@ export default function Admin() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Reviews Management */}
+          <TabsContent value="reviews">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5" />
+                  Customer Reviews Management
+                </CardTitle>
+                <CardDescription>Manage and moderate customer vehicle reviews</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {reviews.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">No reviews found</p>
+                  ) : (
+                    reviews.map((review: any) => (
+                      <Card key={review.id} className="p-4">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="font-semibold">{review.profiles?.full_name || 'Anonymous'}</span>
+                              <Badge variant={
+                                review.status === 'approved' ? 'default' : 
+                                review.status === 'rejected' ? 'destructive' : 'secondary'
+                              }>
+                                {review.status}
+                              </Badge>
+                              {review.is_verified_purchase && (
+                                <Badge variant="outline">Verified Purchase</Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="flex">
+                                {Array.from({ length: 5 }, (_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`h-4 w-4 ${
+                                      i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                              <span className="text-sm text-muted-foreground">
+                                for {review.cars?.brand} {review.cars?.model}
+                              </span>
+                            </div>
+                            <h4 className="font-semibold mb-2">{review.title}</h4>
+                            <p className="text-muted-foreground mb-2">{review.comment}</p>
+                            {review.admin_notes && (
+                              <div className="mt-2 p-2 bg-muted rounded">
+                                <strong>Admin Notes:</strong> {review.admin_notes}
+                              </div>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-2">
+                              Submitted: {new Date(review.created_at).toLocaleString()}
+                            </p>
+                          </div>
+                          <div className="flex gap-2 ml-4">
+                            {review.status === 'pending' && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() => updateReviewStatus(review.id, 'approved')}
+                                >
+                                  <CheckCircle2 className="h-4 w-4 mr-1" />
+                                  Approve
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => {
+                                    const notes = prompt('Reason for rejection (optional):');
+                                    updateReviewStatus(review.id, 'rejected', notes || undefined);
+                                  }}
+                                >
+                                  <XCircle className="h-4 w-4 mr-1" />
+                                  Reject
+                                </Button>
+                              </>
+                            )}
+                            {review.status === 'approved' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => updateReviewStatus(review.id, 'pending')}
+                              >
+                                <Clock className="h-4 w-4 mr-1" />
+                                Set Pending
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Feature Toggles */}

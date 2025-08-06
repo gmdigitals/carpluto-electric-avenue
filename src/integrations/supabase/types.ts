@@ -313,6 +313,48 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          admin_notes: string | null
+          car_id: string
+          comment: string
+          created_at: string
+          id: string
+          is_verified_purchase: boolean
+          rating: number
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          car_id: string
+          comment: string
+          created_at?: string
+          id?: string
+          is_verified_purchase?: boolean
+          rating: number
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          car_id?: string
+          comment?: string
+          created_at?: string
+          id?: string
+          is_verified_purchase?: boolean
+          rating?: number
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       test_drives: {
         Row: {
           admin_notes: string | null
