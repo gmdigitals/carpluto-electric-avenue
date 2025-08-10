@@ -5,3 +5,12 @@ verify_jwt = true
 
 [functions.verify-payment]
 verify_jwt = false
+
+[functions.send-welcome-email]
+verify_jwt = false
+
+[functions.send-test-drive-confirmation]
+verify_jwt = false
+
+[functions.send-purchase-confirmation]
+verify_jwt = false
