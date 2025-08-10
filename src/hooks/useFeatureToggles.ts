@@ -12,6 +12,8 @@ interface FeatureToggles {
   enableChargingStations: boolean;
   enableEvSupport: boolean;
   showOurImpact: boolean;
+  enableWatermark: boolean;
+  maintenanceMode: boolean;
 }
 
 export const useFeatureToggles = () => {
@@ -20,6 +22,8 @@ export const useFeatureToggles = () => {
     enableChargingStations: false,
     enableEvSupport: false,
     showOurImpact: true,
+    enableWatermark: false,
+    maintenanceMode: false,
   });
   const [loading, setLoading] = useState(true);
 
@@ -48,6 +52,8 @@ export const useFeatureToggles = () => {
         enableChargingStations: toggleMap['enable_charging_stations'] || false,
         enableEvSupport: toggleMap['enable_ev_support'] || false,
         showOurImpact: toggleMap['show_our_impact'] !== false,
+        enableWatermark: toggleMap['enable_watermark'] || false,
+        maintenanceMode: toggleMap['maintenance_mode'] || false,
       });
     } catch (error) {
       console.error('Error fetching feature toggles:', error);

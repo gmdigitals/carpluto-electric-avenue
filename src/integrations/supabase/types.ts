@@ -62,6 +62,33 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_text_settings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -217,6 +244,48 @@ export type Database = {
           pricing_per_kwh?: number | null
           state?: string
           status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dealership_locations: {
+        Row: {
+          address: string
+          city: string
+          created_at: string
+          email: string | null
+          features: string[] | null
+          id: string
+          is_active: boolean | null
+          name: string
+          phone: string | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          city: string
+          created_at?: string
+          email?: string | null
+          features?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone?: string | null
+          state: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          created_at?: string
+          email?: string | null
+          features?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone?: string | null
+          state?: string
           updated_at?: string
         }
         Relationships: []

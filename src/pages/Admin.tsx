@@ -1,5 +1,8 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
+import { MaintenanceToggle } from "@/components/admin/MaintenanceToggle";
+import { WatermarkSettings } from "@/components/admin/WatermarkSettings";
+import { DealershipLocations } from "@/components/admin/DealershipLocations";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -1492,45 +1495,57 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
-          {/* Feature Toggles */}
+          {/* Settings */}
           <TabsContent value="settings">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  Feature Toggles
-                </CardTitle>
-                <CardDescription>
-                  Control which features are enabled or disabled site-wide
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {featureToggles.map((toggle: any) => (
-                    <div key={toggle.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex-1">
-                        <h3 className="font-medium capitalize">
-                          {toggle.setting_key.replace(/^enable_/, '').replace(/_/g, ' ')}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">{toggle.description}</p>
+            <div className="space-y-6">
+              {/* Maintenance Mode */}
+              <MaintenanceToggle />
+              
+              {/* Watermark Settings */}
+              <WatermarkSettings />
+              
+              {/* Dealership Locations */}
+              <DealershipLocations />
+              
+              {/* Feature Toggles */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Feature Toggles
+                  </CardTitle>
+                  <CardDescription>
+                    Control which features are enabled or disabled site-wide
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {featureToggles.map((toggle: any) => (
+                      <div key={toggle.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <h3 className="font-medium capitalize">
+                            {toggle.setting_key.replace(/^enable_/, '').replace(/_/g, ' ')}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">{toggle.description}</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <Badge variant={toggle.setting_value ? "default" : "secondary"}>
+                            {toggle.setting_value ? "Enabled" : "Disabled"}
+                          </Badge>
+                          <Button
+                            variant={toggle.setting_value ? "destructive" : "default"}
+                            size="sm"
+                            onClick={() => updateFeatureToggle(toggle.setting_key, !toggle.setting_value)}
+                          >
+                            {toggle.setting_value ? "Disable" : "Enable"}
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <Badge variant={toggle.setting_value ? "default" : "secondary"}>
-                          {toggle.setting_value ? "Enabled" : "Disabled"}
-                        </Badge>
-                        <Button
-                          variant={toggle.setting_value ? "destructive" : "default"}
-                          size="sm"
-                          onClick={() => updateFeatureToggle(toggle.setting_key, !toggle.setting_value)}
-                        >
-                          {toggle.setting_value ? "Disable" : "Enable"}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

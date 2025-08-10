@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { DealershipLocationSelect } from '@/components/DealershipLocationSelect';
 import { Navigation } from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -341,16 +342,11 @@ const TestDrive = () => {
 
                   <div>
                     <Label htmlFor="pickup_location">Showroom Location *</Label>
-                    <select
-                      id="pickup_location"
+                    <DealershipLocationSelect
                       value={formData.pickup_location}
-                      onChange={(e) => setFormData(prev => ({ ...prev, pickup_location: e.target.value }))}
-                      className="w-full px-3 py-2 border border-input bg-background rounded-md"
+                      onChange={(value) => setFormData(prev => ({ ...prev, pickup_location: value }))}
                       required
-                    >
-                      <option value="">Select a dealership location</option>
-                      <option value="Lagos Island - Victoria Island, Lagos">Lagos Island - Victoria Island, Lagos</option>
-                    </select>
+                    />
                   </div>
 
                   <div>

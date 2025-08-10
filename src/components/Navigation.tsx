@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFeatureToggles } from '@/hooks/useFeatureToggles';
 import { Menu, X, Zap, Search, User, ShoppingBag, Settings, LogOut } from 'lucide-react';
@@ -9,8 +9,18 @@ import { Badge } from '@/components/ui/badge';
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { user, profile, signOut } = useAuth();
   const { features } = useFeatureToggles();
+  const navigate = useNavigate();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/vehicles?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
+  };
 
   const navItems = [
     { label: 'Vehicles', href: '/vehicles' },
@@ -51,13 +61,15 @@ export function Navigation() {
 
           {/* Search and Actions */}
           <div className="hidden md:flex items-center gap-4">
-            <div className="relative">
+            <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search vehicles..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-64 pl-10 bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary"
               />
-            </div>
+            </form>
             
             {user ? (
               <>
@@ -109,13 +121,15 @@ export function Navigation() {
           <div className="md:hidden py-4 border-t border-border animate-slide-up">
             <div className="flex flex-col gap-4">
               {/* Mobile Search */}
-              <div className="relative">
+              <form onSubmit={handleSearch} className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search vehicles..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 bg-muted/50 border-none"
                 />
-              </div>
+              </form>
               
               {/* Mobile Navigation Links */}
               {navItems.map((item) => (

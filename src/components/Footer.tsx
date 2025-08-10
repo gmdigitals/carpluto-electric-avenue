@@ -3,14 +3,31 @@ import { useFeatureToggles } from '@/hooks/useFeatureToggles';
 import { Mail, Phone, MessageCircle, Twitter, Instagram, Linkedin, Shield, Accessibility } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
   const { features } = useFeatureToggles();
 
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Newsletter signup logic will be implemented later
+    if (!email.trim()) return;
+    
+    try {
+      const response = await supabase.functions.invoke('newsletter-signup', {
+        body: { email: email.trim() }
+      });
+
+      if (response.error) {
+        throw response.error;
+      }
+
+      setEmail('');
+      alert('Thank you for subscribing to our newsletter!');
+    } catch (error) {
+      console.error('Newsletter signup error:', error);
+      alert('Failed to subscribe. Please try again.');
+    }
   };
 
   const handleWhatsAppContact = () => {
@@ -198,7 +215,7 @@ const Footer = () => {
             {/* Copyright */}
             <div className="text-center md:text-left">
               <p className="text-slate-400 text-sm">
-                © 2025 <span className="text-white font-semibold">CARPLUTO</span> – Nigeria's Trusted EV Marketplace (A GM Digital Enterprises Services)
+                © 2025 <span className="text-white font-semibold">CARPLUTO</span> – Nigeria's Trusted EV Marketplace (A Pluto EV Service)
               </p>
             </div>
 

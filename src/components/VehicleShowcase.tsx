@@ -49,6 +49,15 @@ export function VehicleShowcase() {
     fetchVehicles();
   }, []);
 
+  useEffect(() => {
+    // Handle search from URL params
+    const searchParams = new URLSearchParams(window.location.search);
+    const searchQuery = searchParams.get('search');
+    if (searchQuery) {
+      setActiveFilter('all'); // Reset filter when searching
+    }
+  }, []);
+
   const fetchVehicles = async () => {
     try {
       const { data, error } = await supabase
@@ -79,7 +88,21 @@ export function VehicleShowcase() {
     );
   };
 
-  const filteredVehicles = vehicles.filter(vehicle => {
+  const filteredVehicles = vehicles.filter((vehicle: Vehicle) => {
+    // Search functionality
+    const searchParams = new URLSearchParams(window.location.search);
+    const searchQuery = searchParams.get('search')?.toLowerCase();
+    
+    if (searchQuery) {
+      const searchMatch = 
+        vehicle.brand.toLowerCase().includes(searchQuery) ||
+        vehicle.model.toLowerCase().includes(searchQuery) ||
+        vehicle.features.some(feature => feature.toLowerCase().includes(searchQuery));
+      
+      if (!searchMatch) return false;
+    }
+
+    // Filter functionality
     if (activeFilter === "all") return true;
     if (activeFilter === "budget") return vehicle.price < 20000000;
     return vehicle.brand === activeFilter;
