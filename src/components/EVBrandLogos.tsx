@@ -1,13 +1,22 @@
+import teslaLogo from '@/assets/brands/tesla-logo.png';
+import bydLogo from '@/assets/brands/byd-logo.png';
+import hyundaiLogo from '@/assets/brands/hyundai-logo.png';
+import kiaLogo from '@/assets/brands/kia-logo.png';
+import nissanLogo from '@/assets/brands/nissan-logo.png';
+import bmwLogo from '@/assets/brands/bmw-logo.png';
+import mercedesLogo from '@/assets/brands/mercedes-logo.png';
+import audiLogo from '@/assets/brands/audi-logo.png';
+
 export function EVBrandLogos() {
   const brands = [
-    { name: 'Tesla', logo: '🅃' },
-    { name: 'BYD', logo: 'BYD' },
-    { name: 'Hyundai', logo: 'H' },
-    { name: 'Kia', logo: 'KIA' },
-    { name: 'Nissan', logo: 'NISSAN' },
-    { name: 'BMW', logo: 'BMW' },
-    { name: 'Mercedes', logo: 'MB' },
-    { name: 'Audi', logo: 'AUDI' },
+    { name: 'Tesla', logo: teslaLogo },
+    { name: 'BYD', logo: bydLogo },
+    { name: 'Hyundai', logo: hyundaiLogo },
+    { name: 'Kia', logo: kiaLogo },
+    { name: 'Nissan', logo: nissanLogo },
+    { name: 'BMW', logo: bmwLogo },
+    { name: 'Mercedes', logo: mercedesLogo },
+    { name: 'Audi', logo: audiLogo },
   ];
 
   return (
@@ -28,14 +37,11 @@ export function EVBrandLogos() {
               key={brand.name}
               className="flex items-center justify-center p-6 bg-background rounded-lg border border-border hover:shadow-lg transition-all duration-300 hover:scale-105"
             >
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary mb-2">
-                  {brand.logo}
-                </div>
-                <p className="text-xs text-muted-foreground font-medium">
-                  {brand.name}
-                </p>
-              </div>
+              <img 
+                src={brand.logo} 
+                alt={`${brand.name} logo`}
+                className="h-12 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+              />
             </div>
           ))}
         </div>

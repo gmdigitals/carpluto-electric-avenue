@@ -67,20 +67,16 @@ All colors MUST be HSL.
     --transition-smooth: all 0.4s var(--ease-electric);
     --transition-luxury: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 
+    /* Footer */
+    --footer-background: 21 18% 15%; /* Light Beige #F0EDE4 */
+    
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -132,6 +128,10 @@ All colors MUST be HSL.
     --shadow-electric: 0 10px 40px -10px hsl(51 100% 42% / 0.3);
     --shadow-glow: 0 0 40px hsl(51 100% 42% / 0.2);
     --shadow-luxury: 0 8px 32px -8px hsl(0 0% 0% / 0.4);
+    
+    /* Footer in dark mode */
+    --footer-background: 0 0% 15%; /* Deep Charcoal Gray #262626 */
+    
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
