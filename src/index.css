@@ -2,67 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CARPLUTO Design System - Nigerian EV Showroom
-Tesla/BYD-inspired electric vehicle marketplace
+/* CARPLUTO Design System - Luxurious Dark & Light Themes
+Elegant gold-accented design with premium typography
 All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    /* Base colors for dark theme */
-    --background: 222 20% 11%;
-    --foreground: 210 20% 85%;
+    /* Light Theme - Off-white luxurious base */
+    --background: 0 0% 96%;
+    --foreground: 0 0% 20%;
 
     /* Card system */
-    --card: 222 20% 15%;
-    --card-foreground: 210 20% 85%;
+    --card: 0 0% 98%;
+    --card-foreground: 0 0% 20%;
 
     /* Popover system */
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 18%;
+    --popover: 0 0% 98%;
+    --popover-foreground: 0 0% 20%;
 
-    /* Primary - Electric Blue (Tesla-inspired) */
-    --primary: 214 100% 50%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 214 100% 65%;
+    /* Primary - Deep Black */
+    --primary: 0 0% 10%;
+    --primary-foreground: 0 0% 98%;
+    --primary-glow: 0 0% 25%;
 
-    /* Secondary - Premium Gray */
-    --secondary: 220 15% 95%;
-    --secondary-foreground: 220 13% 18%;
+    /* Secondary - Light Gray */
+    --secondary: 0 0% 83%;
+    --secondary-foreground: 0 0% 20%;
 
     /* Muted - Subtle backgrounds */
-    --muted: 220 13% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 0 0% 90%;
+    --muted-foreground: 0 0% 45%;
 
-    /* Accent - Electric Teal */
-    --accent: 178 60% 50%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent - Luxury Gold */
+    --accent: 51 100% 42%;
+    --accent-foreground: 0 0% 10%;
 
     /* Destructive - Warning red */
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 0 0% 98%;
 
     /* Borders and inputs */
-    --border: 220 13% 88%;
-    --input: 220 13% 88%;
-    --ring: 214 100% 50%;
+    --border: 0 0% 85%;
+    --input: 0 0% 88%;
+    --ring: 51 100% 42%;
 
     /* Design tokens */
     --radius: 12px;
 
-    /* Electric gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(214 100% 50%), hsl(178 60% 50%));
-    --gradient-hero: linear-gradient(135deg, hsl(220 30% 5%) 0%, hsl(220 25% 12%) 50%, hsl(214 40% 8%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(220 13% 98%) 100%);
+    /* Luxurious gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(0 0% 10%), hsl(51 100% 42%));
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 96%) 0%, hsl(0 0% 92%) 50%, hsl(51 100% 96%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 98%) 0%, hsl(0 0% 94%) 100%);
+    --gradient-cosmic: radial-gradient(ellipse at center, hsl(51 100% 96%) 0%, hsl(0 0% 96%) 100%);
     
-    /* Shadows - Premium automotive feel */
-    --shadow-electric: 0 10px 40px -10px hsl(214 100% 50% / 0.3);
-    --shadow-card: 0 4px 20px -2px hsl(220 13% 18% / 0.08);
-    --shadow-glow: 0 0 30px hsl(214 100% 65% / 0.4);
+    /* Shadows - Premium feel with gold accents */
+    --shadow-electric: 0 10px 40px -10px hsl(51 100% 42% / 0.2);
+    --shadow-card: 0 4px 20px -2px hsl(0 0% 20% / 0.08);
+    --shadow-glow: 0 0 30px hsl(51 100% 42% / 0.3);
+    --shadow-luxury: 0 8px 32px -8px hsl(0 0% 20% / 0.12);
 
     /* Animation easing */
     --ease-electric: cubic-bezier(0.23, 1, 0.32, 1);
     --transition-smooth: all 0.4s var(--ease-electric);
+    --transition-luxury: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 
     --sidebar-background: 0 0% 98%;
 
@@ -82,51 +85,53 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Dark mode - Tesla-inspired premium dark */
-    --background: 220 30% 5%;
-    --foreground: 0 0% 95%;
+    /* Dark Theme - Deep Black luxurious base */
+    --background: 0 0% 10%;
+    --foreground: 0 0% 98%;
 
     /* Cards in dark mode */
-    --card: 220 25% 8%;
-    --card-foreground: 0 0% 95%;
+    --card: 0 0% 13%;
+    --card-foreground: 0 0% 98%;
 
     /* Popover in dark mode */
-    --popover: 220 25% 8%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 13%;
+    --popover-foreground: 0 0% 98%;
 
-    /* Primary in dark - Electric blue glow */
-    --primary: 214 100% 60%;
-    --primary-foreground: 220 30% 5%;
-    --primary-glow: 214 100% 75%;
+    /* Primary in dark - White/Light elements */
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 10%;
+    --primary-glow: 0 0% 85%;
 
-    /* Secondary in dark */
-    --secondary: 220 20% 12%;
-    --secondary-foreground: 0 0% 95%;
+    /* Secondary in dark - Charcoal Gray */
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 98%;
 
     /* Muted in dark */
-    --muted: 220 20% 10%;
-    --muted-foreground: 220 15% 70%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 70%;
 
-    /* Accent in dark - Electric teal */
-    --accent: 178 60% 55%;
-    --accent-foreground: 220 30% 5%;
+    /* Accent in dark - Luxury Gold */
+    --accent: 51 100% 42%;
+    --accent-foreground: 0 0% 10%;
 
     /* Destructive in dark */
     --destructive: 0 75% 55%;
-    --destructive-foreground: 0 0% 95%;
+    --destructive-foreground: 0 0% 98%;
 
     /* Borders and inputs in dark */
-    --border: 220 20% 15%;
-    --input: 220 20% 15%;
-    --ring: 214 100% 60%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 51 100% 42%;
 
-    /* Dark gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(220 30% 5%) 0%, hsl(220 25% 12%) 50%, hsl(214 40% 8%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(220 25% 8%) 0%, hsl(220 20% 12%) 100%);
+    /* Dark gradients with cosmic feel */
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 10%) 0%, hsl(0 0% 13%) 50%, hsl(51 30% 8%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 13%) 0%, hsl(0 0% 16%) 100%);
+    --gradient-cosmic: radial-gradient(ellipse at center, hsl(51 30% 8%) 0%, hsl(0 0% 10%) 100%);
     
-    /* Dark shadows */
-    --shadow-electric: 0 10px 40px -10px hsl(214 100% 60% / 0.4);
-    --shadow-glow: 0 0 40px hsl(214 100% 75% / 0.3);
+    /* Dark shadows with gold glow */
+    --shadow-electric: 0 10px 40px -10px hsl(51 100% 42% / 0.3);
+    --shadow-glow: 0 0 40px hsl(51 100% 42% / 0.2);
+    --shadow-luxury: 0 8px 32px -8px hsl(0 0% 0% / 0.4);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;

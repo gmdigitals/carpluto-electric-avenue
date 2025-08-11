@@ -6,6 +6,7 @@ import { Menu, X, Zap, Search, User, ShoppingBag, Settings, LogOut } from 'lucid
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -32,16 +33,16 @@ export function Navigation() {
   ];
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border">
+    <nav className="fixed top-0 w-full z-50 bg-background/90 backdrop-blur-md border-b border-accent/20 shadow-luxury">
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <Link to="/">
+            <Link to="/" className="group">
               <img 
                 src="/lovable-uploads/80acdd1a-fb67-4940-ba3e-f5696cf1959c.png" 
                 alt="CARPLUTO Logo" 
-                className="h-8 w-auto cursor-pointer"
+                className="h-10 w-auto cursor-pointer transition-all duration-300 group-hover:drop-shadow-[0_0_8px_hsl(var(--accent)/0.6)]"
               />
             </Link>
           </div>
@@ -52,7 +53,7 @@ export function Navigation() {
               <Link
                 key={item.label}
                 to={item.href}
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200"
+                className="font-playfair text-sm font-medium text-foreground hover:text-accent transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-accent after:transition-all after:duration-300 hover:after:w-full"
               >
                 {item.label}
               </Link>
@@ -62,14 +63,16 @@ export function Navigation() {
           {/* Search and Actions */}
           <div className="hidden md:flex items-center gap-4">
             <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-accent" />
               <Input
                 placeholder="Search vehicles..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-64 pl-10 bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary"
+                className="w-64 pl-10 bg-card/50 border border-accent/20 focus-visible:ring-1 focus-visible:ring-accent font-montserrat"
               />
             </form>
+            
+            <ThemeToggle />
             
             {user ? (
               <>
@@ -100,7 +103,9 @@ export function Navigation() {
               </>
             ) : (
               <Link to="/auth">
-                <Button size="sm">Sign In</Button>
+                <Button size="sm" className="font-playfair bg-gradient-to-r from-accent to-accent/80 text-accent-foreground border border-accent/20 hover:shadow-glow transition-all duration-300">
+                  Sign In
+                </Button>
               </Link>
             )}
           </div>
