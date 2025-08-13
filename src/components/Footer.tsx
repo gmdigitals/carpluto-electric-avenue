@@ -31,7 +31,7 @@ const Footer = () => {
   };
 
   const handleWhatsAppContact = () => {
-    window.open('https://wa.me/09021475523?text=Hello%20CARPLUTO,%20I%20need%20assistance%20with%20electric%20vehicles', '_blank');
+    window.open('https://wa.me/08155132360?text=Hello%20CARPLUTO,%20I%20need%20assistance%20with%20electric%20vehicles', '_blank');
   };
 
   return (
@@ -93,8 +93,8 @@ const Footer = () => {
               </li>
               <li className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-primary" />
-                <a href="tel:09021475523" className="text-slate-300 hover:text-primary transition-colors duration-200">
-                  09021475523
+                <a href="tel:08155132360" className="text-slate-300 hover:text-primary transition-colors duration-200">
+                  08155132360
                 </a>
               </li>
               <li>

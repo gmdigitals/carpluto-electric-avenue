@@ -66,6 +66,13 @@ interface AnalyticsData {
 export default function Admin() {
   const { user, profile, loading } = useAuth();
   const { toast } = useToast();
+
+  // Check admin authentication
+  const isAdminAuthenticated = sessionStorage.getItem('admin_authenticated') === 'true';
+  
+  if (!isAdminAuthenticated && !(['admin', 'super_admin'].includes(profile?.role))) {
+    return <Navigate to="/admin-login" />;
+  }
   const [stats, setStats] = useState({
     totalCars: 0,
     totalUsers: 0,
@@ -589,6 +596,35 @@ export default function Admin() {
     }
   };
 
+  const handleDeleteAllCars = async () => {
+    if (!confirm('Are you sure you want to delete ALL cars? This action cannot be undone.')) {
+      return;
+    }
+
+    if (!confirm('This will permanently delete all car inventory. Type "DELETE ALL" to confirm.')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase.rpc('delete_all_cars');
+      
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "All cars deleted successfully!",
+      });
+      
+      fetchAdminData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete all cars",
+        variant: "destructive",
+      });
+    }
+  };
+
   const exportCarsData = () => {
     const csvContent = [
       ['Brand', 'Model', 'Year', 'Price', 'Range (km)', 'Status'],
@@ -944,6 +980,15 @@ export default function Admin() {
                     <Button size="sm" variant="outline">
                       <Upload className="h-4 w-4 mr-2" />
                       Import
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="destructive" 
+                      onClick={handleDeleteAllCars}
+                      className="ml-2"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete All Cars
                     </Button>
                   </div>
                 </div>

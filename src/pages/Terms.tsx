@@ -238,7 +238,7 @@ const Terms = () => {
                   </p>
                   <div className="space-y-2 text-muted-foreground">
                     <p>Email: legal@carpluto.com.ng</p>
-                    <p>Phone: 09021475523</p>
+                    <p>Phone: 08155132360</p>
                   </div>
                 </CardContent>
               </Card>

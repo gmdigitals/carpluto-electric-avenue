@@ -13,6 +13,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import CostCalculator from "./pages/CostCalculator";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
+import AdminLogin from "./pages/AdminLogin";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import NotFound from "./pages/NotFound";
 import Vehicles from "./pages/Vehicles";
@@ -38,7 +39,9 @@ const AppContent = () => {
     );
   }
 
-  if (isMaintenanceMode) {
+  // Skip maintenance mode for admin routes
+  const isAdminRoute = window.location.pathname.startsWith('/admin');
+  if (isMaintenanceMode && !isAdminRoute) {
     return <MaintenanceMode />;
   }
 
@@ -51,6 +54,7 @@ const AppContent = () => {
           <Route path="/cost-calculator" element={<CostCalculator />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/vehicles" element={<Vehicles />} />
             <Route path="/vehicle/:id" element={<VehicleDetails />} />

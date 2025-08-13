@@ -204,7 +204,7 @@ const About = () => {
                     <Heart className="h-12 w-12 text-primary mx-auto mb-4" />
                     <h3 className="text-xl font-semibold mb-4">Customer-Centricity</h3>
                     <p className="text-muted-foreground">
-                      Dedicated support via WhatsApp, 7 days a week at 09021475523.
+                      Dedicated support via WhatsApp, 7 days a week at 08155132360.
                     </p>
                   </CardContent>
                 </Card>
