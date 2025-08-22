@@ -4,6 +4,8 @@ import { Navigation } from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { useFeatureToggles } from '@/hooks/useFeatureToggles';
 import { ReviewsSection } from '@/components/ReviewsSection';
+import { FullscreenImageModal } from '@/components/FullscreenImageModal';
+import { generateVehicleMetadata, createSeoFriendlySlug } from '@/utils/seoUtils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PurchaseModal } from '@/components/PurchaseModal';
 import { 
   Car, Zap, Battery, Gauge, Heart, ArrowRight, ArrowLeft,
-  Shield, Star, MapPin, Calendar, Clock, Phone
+  Shield, Star, MapPin, Calendar, Clock, Phone, Play
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -40,7 +42,7 @@ interface Vehicle {
 }
 
 const VehicleDetails = () => {
-  const { id } = useParams();
+  const { id, slug } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { features } = useFeatureToggles();
@@ -52,6 +54,21 @@ const VehicleDetails = () => {
   useEffect(() => {
     fetchVehicle();
   }, [id]);
+
+  // Update page metadata when vehicle loads
+  useEffect(() => {
+    if (vehicle) {
+      const { title, description, keywords } = generateVehicleMetadata(vehicle);
+      document.title = title;
+      
+      // Update meta tags
+      let metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) metaDesc.setAttribute('content', description);
+      
+      let metaKeywords = document.querySelector('meta[name="keywords"]');
+      if (metaKeywords) metaKeywords.setAttribute('content', keywords);
+    }
+  }, [vehicle]);
 
   const fetchVehicle = async () => {
     if (!id) return;
@@ -66,6 +83,12 @@ const VehicleDetails = () => {
       if (error) throw error;
       
       setVehicle(data);
+      
+      // Redirect to proper SEO URL if slug is missing or incorrect
+      if (data && (!slug || slug !== createSeoFriendlySlug(`${data.brand} ${data.model} ${data.year}`))) {
+        const correctSlug = createSeoFriendlySlug(`${data.brand} ${data.model} ${data.year}`);
+        navigate(`/vehicle/${id}/${correctSlug}`, { replace: true });
+      }
     } catch (error) {
       console.error('Error fetching vehicle:', error);
       toast({
@@ -140,48 +163,98 @@ const VehicleDetails = () => {
         <div className="container mx-auto px-6 pb-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Image Gallery */}
-            <div className="space-y-4">
-              <div className="relative">
-                <img
-                  src={vehicle.images[currentImageIndex] || "/placeholder.svg?height=500&width=600&text=No+Image"}
-                  alt={`${vehicle.brand} ${vehicle.model}`}
-                  className="w-full h-96 object-cover rounded-lg"
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-4 right-4 h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background"
-                  onClick={() => setIsLiked(!isLiked)}
+              <div className="space-y-4">
+                <FullscreenImageModal
+                  images={vehicle.images}
+                  currentIndex={currentImageIndex}
+                  onIndexChange={setCurrentImageIndex}
                 >
-                  <Heart 
-                    className={`h-4 w-4 transition-colors ${
-                      isLiked ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
-                    }`} 
-                  />
-                </Button>
-                {vehicle.images.length > 1 && (
-                  <>
+                  <div className="relative">
+                    <img
+                      src={vehicle.images[currentImageIndex] || "/placeholder.svg?height=500&width=600&text=No+Image"}
+                      alt={`${vehicle.brand} ${vehicle.model}`}
+                      className="w-full h-96 object-cover rounded-lg"
+                    />
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute left-4 top-1/2 -translate-y-1/2 h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background"
-                      onClick={() => setCurrentImageIndex(Math.max(0, currentImageIndex - 1))}
-                      disabled={currentImageIndex === 0}
+                      className="absolute top-4 right-4 h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsLiked(!isLiked);
+                      }}
                     >
-                      <ArrowLeft className="h-4 w-4" />
+                      <Heart 
+                        className={`h-4 w-4 transition-colors ${
+                          isLiked ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
+                        }`} 
+                      />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-4 top-1/2 -translate-y-1/2 h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background"
-                      onClick={() => setCurrentImageIndex(Math.min(vehicle.images.length - 1, currentImageIndex + 1))}
-                      disabled={currentImageIndex === vehicle.images.length - 1}
-                    >
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </>
+                    {vehicle.images.length > 1 && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute left-4 top-1/2 -translate-y-1/2 h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCurrentImageIndex(Math.max(0, currentImageIndex - 1));
+                          }}
+                          disabled={currentImageIndex === 0}
+                        >
+                          <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-14 top-1/2 -translate-y-1/2 h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCurrentImageIndex(Math.min(vehicle.images.length - 1, currentImageIndex + 1));
+                          }}
+                          disabled={currentImageIndex === vehicle.images.length - 1}
+                        >
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </FullscreenImageModal>
+                
+                {/* Videos Section */}
+                {vehicle.specifications?.videos && vehicle.specifications.videos.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-semibold">Videos</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {vehicle.specifications.videos.map((video: string, index: number) => (
+                        <div key={index} className="relative group">
+                          <video
+                            src={video}
+                            className="w-full h-24 object-cover rounded cursor-pointer"
+                            onClick={() => {
+                              const videoElement = document.createElement('video');
+                              videoElement.src = video;
+                              videoElement.controls = true;
+                              videoElement.className = 'w-full h-auto';
+                              const dialog = document.createElement('dialog');
+                              dialog.className = 'fixed inset-0 z-50 bg-black/90 p-4 w-full h-full';
+                              dialog.appendChild(videoElement);
+                              document.body.appendChild(dialog);
+                              dialog.showModal();
+                              dialog.onclick = () => {
+                                dialog.close();
+                                document.body.removeChild(dialog);
+                              };
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Play className="h-6 w-6 text-white" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
-              </div>
               
               {/* Image Thumbnails */}
               {vehicle.images.length > 1 && (

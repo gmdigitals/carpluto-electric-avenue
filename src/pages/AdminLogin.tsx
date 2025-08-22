@@ -32,8 +32,7 @@ export default function AdminLogin() {
         throw new Error('Invalid credentials');
       }
 
-      // For simplicity, we'll use a basic password check
-      // In production, you'd use proper password hashing
+      // Check password (in production, you should use proper hashing)
       if (credentials.password === 'CarPluto2025!') {
         // Create a temporary admin session
         sessionStorage.setItem('admin_authenticated', 'true');
@@ -119,15 +118,6 @@ export default function AdminLogin() {
             </Button>
           </form>
           
-          <div className="mt-6 p-4 bg-muted rounded-lg">
-            <p className="text-sm font-semibold text-center">Admin Credentials:</p>
-            <p className="text-xs text-muted-foreground text-center mt-1">
-              Username: carpluto_admin
-            </p>
-            <p className="text-xs text-muted-foreground text-center">
-              Password: CarPluto2025!
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>

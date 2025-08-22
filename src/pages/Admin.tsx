@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate, Link } from "react-router-dom";
+import { Navigate, Link, useNavigate } from "react-router-dom";
 import { MaintenanceToggle } from "@/components/admin/MaintenanceToggle";
 import { WatermarkSettings } from "@/components/admin/WatermarkSettings";
 import { DealershipLocations } from "@/components/admin/DealershipLocations";
@@ -66,6 +66,7 @@ interface AnalyticsData {
 export default function Admin() {
   const { user, profile, loading } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Check admin authentication
   const isAdminAuthenticated = sessionStorage.getItem('admin_authenticated') === 'true';
@@ -107,8 +108,10 @@ export default function Admin() {
     interior_color: '',
     features: '',
     is_featured: false,
-    images: [] as File[]
+    images: [] as File[],
+    videos: [] as File[]
   });
+  const [isAddingCar, setIsAddingCar] = useState(false);
 
   const [stationForm, setStationForm] = useState({
     name: '',
@@ -299,10 +302,13 @@ export default function Admin() {
 
   const handleAddCar = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsAddingCar(true);
     
     try {
-      // Upload images first if any
+      // Upload images and videos first if any
       let imageUrls: string[] = [];
+      let videoUrls: string[] = [];
+
       if (carForm.images.length > 0) {
         for (const image of carForm.images) {
           const fileExt = image.name.split('.').pop();
@@ -322,6 +328,25 @@ export default function Admin() {
         }
       }
 
+      if (carForm.videos.length > 0) {
+        for (const video of carForm.videos) {
+          const fileExt = video.name.split('.').pop();
+          const fileName = `video-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('car-images')
+            .upload(fileName, video);
+
+          if (uploadError) throw uploadError;
+          
+          const { data: { publicUrl } } = supabase.storage
+            .from('car-images')
+            .getPublicUrl(fileName);
+          
+          videoUrls.push(publicUrl);
+        }
+      }
+
       const carData = {
         brand: carForm.brand,
         model: carForm.model,
@@ -336,7 +361,8 @@ export default function Admin() {
         interior_color: carForm.interior_color || null,
         features: carForm.features.split(',').map(f => f.trim()).filter(f => f),
         is_featured: carForm.is_featured,
-        images: imageUrls
+        images: imageUrls,
+        specifications: { videos: videoUrls }
       };
 
       const { error } = await supabase.from('cars').insert(carData);
@@ -367,7 +393,8 @@ export default function Admin() {
           interior_color: '',
           features: '',
           is_featured: false,
-          images: []
+          images: [],
+          videos: []
         });
         fetchAdminData();
       }
@@ -377,6 +404,8 @@ export default function Admin() {
         description: error.message || "Failed to add car",
         variant: "destructive",
       });
+    } finally {
+      setIsAddingCar(false);
     }
   };
 
@@ -1027,11 +1056,25 @@ export default function Admin() {
                               </div>
                             </div>
                             <div className="flex gap-2">
-                              <Button size="sm" variant="outline">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button size="sm" variant="outline">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => navigate(`/vehicle/${car.id}`)}
+                              >
                                 <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                  // TODO: Implement edit functionality
+                                  toast({
+                                    title: "Coming Soon",
+                                    description: "Edit functionality will be available soon",
+                                  });
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
                               </Button>
                               <Button 
                                 size="sm" 
@@ -1331,8 +1374,33 @@ export default function Admin() {
                       </p>
                     </div>
 
-                    <Button type="submit" className="w-full">
-                      Add Car
+                    <div>
+                      <Label htmlFor="car_videos">Car Videos</Label>
+                      <Input
+                        id="car_videos"
+                        type="file"
+                        multiple
+                        accept="video/*"
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          setCarForm({...carForm, videos: files});
+                        }}
+                        className="cursor-pointer"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Select videos for this car (optional)
+                      </p>
+                    </div>
+
+                    <Button type="submit" className="w-full" disabled={isAddingCar}>
+                      {isAddingCar ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          Adding Car...
+                        </>
+                      ) : (
+                        "Add Car"
+                      )}
                     </Button>
                   </form>
                 </CardContent>

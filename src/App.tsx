@@ -57,7 +57,7 @@ const AppContent = () => {
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/vehicles" element={<Vehicles />} />
-            <Route path="/vehicle/:id" element={<VehicleDetails />} />
+            <Route path="/vehicle/:id/:slug?" element={<VehicleDetails />} />
             <Route path="/test-drive" element={<TestDrive />} />
             <Route path="/charging" element={<Charging />} />
             <Route path="/finance" element={<Finance />} />

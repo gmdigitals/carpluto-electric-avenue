@@ -7,6 +7,7 @@ import { PurchaseModal } from '@/components/PurchaseModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { createSeoFriendlySlug } from '@/utils/seoUtils';
 
 const filterOptions = [
   { label: "All Vehicles", value: "all" },
@@ -120,8 +121,9 @@ export function VehicleShowcase() {
     navigate(`/test-drive?car=${vehicleId}`);
   };
 
-  const handleVehicleClick = (vehicleId: string) => {
-    navigate(`/vehicle/${vehicleId}`);
+  const handleVehicleClick = (vehicleId: string, brand: string, model: string, year: number) => {
+    const slug = createSeoFriendlySlug(`${brand} ${model} ${year}`);
+    navigate(`/vehicle/${vehicleId}/${slug}`);
   };
 
   const handleViewAllVehicles = () => {
@@ -181,7 +183,7 @@ export function VehicleShowcase() {
               key={vehicle.id} 
               className="group overflow-hidden bg-gradient-card hover:shadow-electric transition-all duration-500 border-border/50 hover:border-primary/30 cursor-pointer"
               style={{ animationDelay: `${index * 0.1}s` }}
-              onClick={() => handleVehicleClick(vehicle.id)}
+              onClick={() => handleVehicleClick(vehicle.id, vehicle.brand, vehicle.model, vehicle.year)}
             >
               <CardHeader className="p-0 relative">
                 {/* Vehicle Image */}
